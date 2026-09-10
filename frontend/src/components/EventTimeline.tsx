@@ -19,13 +19,13 @@ export default function EventTimeline({
       </p>
       {events.length === 0 && skillUsages.length === 0 ? (
         <p className="diagnostic-empty">
-          开始一次选购后，执行记录会出现在这里。
+          开始一次设备选型后，执行记录会出现在这里。
         </p>
       ) : (
         <ol>
           {skillUsages.map((usage) => <li key={`skill-${usage.toolCallId}`}>
             <div className="event-heading"><span>{usage.status === "reading" && !running ? "方案读取未完成" : usage.status === "used" ? "方案已读取" : usage.status === "error" ? "方案读取失败" : "正在读取方案"}</span></div>
-            <p className="skill-event-name">{usage.title || "选购方案"}{usage.version ? ` · ${usage.version}` : ""}</p>
+            <p className="skill-event-name">{usage.title || "选型方案"}{usage.version ? ` · ${usage.version}` : ""}</p>
             <span className="event-type">{usage.status === "used" ? usage.source === "server_preload" ? "服务端已读取指定版本" : "工具成功返回" : usage.status === "reading" && !running ? "本轮已结束，未收到读取成功结果" : usage.source === "server_preload" ? "服务端读取状态" : "工具执行状态"}</span>
           </li>)}
           {events.slice(-60).map((event) => (

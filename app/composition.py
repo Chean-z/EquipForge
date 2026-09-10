@@ -162,7 +162,9 @@ async def build_container() -> Container:
     settings = load_settings()
     identity_policy = IdentityPolicy.from_settings(settings)
     project_root = Path(__file__).resolve().parent.parent
-    prompt_registry = PromptRegistry(settings.data_dir / "prompts" / "registry.sqlite3",
+    # EquipForge 使用独立 Prompt 注册表：保留旧项目已发布版本与会话绑定，
+    # 同时让新场景首次启动从当前 YAML 建立全新的不可变基线。
+    prompt_registry = PromptRegistry(settings.data_dir / "prompts" / "equipforge-registry.sqlite3",
         toolset_contract(project_root, web_search_enabled=bool(settings.tavily_api_key)), pinned_version=settings.prompt_pin_version)
     await asyncio.to_thread(prompt_registry.bootstrap, project_root / "app/application/prompts/globex.yml")
     setup_tracing(settings)

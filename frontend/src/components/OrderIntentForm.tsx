@@ -62,11 +62,11 @@ export default function OrderIntentForm({
         normalized.address_line,
       ].every(Boolean)
     ) {
-      setLocalError("请补全收件人、配送国家或地区、城市与详细地址。");
+      setLocalError("请补全联系人、交付国家或地区、城市与详细地址。");
       return;
     }
     if (!countries.includes(normalized.country)) {
-      setLocalError("当前目录未确认可配送到该地区，请重新查询。");
+      setLocalError("当前目录未确认可供货到该地区，请重新查询。");
       return;
     }
     setLocalError(null);
@@ -92,7 +92,7 @@ export default function OrderIntentForm({
 
   return (
     <Modal
-      title="准备下单意向"
+      title="生成采购意向"
       drawer
       onClose={() => {
         if (!locked) onClose();
@@ -100,9 +100,9 @@ export default function OrderIntentForm({
     >
       <div className="order-intent-intro">
         <span className="confirmation-eyebrow">先核对，再决定</span>
-        <h2>准备下单意向</h2>
+        <h2>生成采购意向</h2>
         <p>
-          填写收货信息后，我们会重新核对价格与库存，生成一张由你确认的意向单。
+          填写采购与交付信息后，我们会重新核对价格与库存，生成一张由你确认的采购意向单。
         </p>
       </div>
       <div className="order-intent-product">
@@ -113,13 +113,13 @@ export default function OrderIntentForm({
         {sku && (
           <div>
             <strong>{money(sku.price_major, sku.currency)}</strong>
-            <small>目录商品单价 · 最终以确认单为准</small>
+            <small>目录设备参考价 · 最终以确认单为准</small>
           </div>
         )}
       </div>
       <form className="order-intent-form" onSubmit={submit}>
         <label>
-          购买数量 <span aria-hidden="true">*</span>
+          采购数量 <span aria-hidden="true">*</span>
           <input
             name="quantity"
             type="number"
@@ -136,9 +136,9 @@ export default function OrderIntentForm({
           库存以服务端生成确认单和提交时的检查为准。
         </p>
         <fieldset disabled={locked}>
-          <legend>收货信息</legend>
+          <legend>采购与交付信息</legend>
           <label>
-            收件人 <span aria-hidden="true">*</span>
+            联系人 <span aria-hidden="true">*</span>
             <input
               name="recipient_name"
               autoComplete="shipping name"
@@ -146,12 +146,12 @@ export default function OrderIntentForm({
               onChange={(event) => field("recipient_name", event.target.value)}
               required
               maxLength={100}
-              placeholder="收件人的姓名"
+              placeholder="采购联系人的姓名"
             />
           </label>
           <div className="order-intent-field-pair">
             <label>
-              国家或地区 <span aria-hidden="true">*</span>
+              交付国家或地区 <span aria-hidden="true">*</span>
               <select
                 name="country"
                 autoComplete="shipping country"
@@ -159,7 +159,7 @@ export default function OrderIntentForm({
                 value={address.country}
                 onChange={(event) => field("country", event.target.value)}
               >
-                {!countries.length && <option value="">配送范围待核验</option>}
+                {!countries.length && <option value="">供货范围待核验</option>}
                 {countries.map((country) => (
                   <option key={country} value={country}>
                     {country === "CN" ? "中国 · CN" : country}
@@ -233,7 +233,7 @@ export default function OrderIntentForm({
         )}
         <div className="order-intent-footer">
           <p>
-            确认单只包含商品金额，不含运费与关税。生成确认单不会下单、扣库存或付款。
+            确认单只包含设备参考金额，不含运输及其他费用。生成确认单不会实际采购、扣减库存或付款。
           </p>
           <button
             className="confirmation-primary"

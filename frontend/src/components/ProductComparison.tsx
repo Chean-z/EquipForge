@@ -9,7 +9,7 @@ export default function ProductComparison({
   onClose: () => void;
 }) {
   return (
-    <Modal title="商品比较" onClose={onClose}>
+    <Modal title="设备参数比较" onClose={onClose}>
       <h2>放在一起，选择更清楚。</h2>
       <p className="modal-intro">关注你在意的不同，也给决定留一点空间。</p>
       <div className="comparison-scroll">
@@ -27,7 +27,7 @@ export default function ProductComparison({
           </thead>
           <tbody>
             <tr>
-              <td>商品价</td>
+              <td>参考采购价</td>
               {products.map((p) => (
                 <td key={p.product_id}>
                   <span className="compare-price">
@@ -52,7 +52,7 @@ export default function ProductComparison({
               ))}
             </tr>
             <tr>
-              <td>商品特点</td>
+              <td>设备特点</td>
               {products.map((p) => (
                 <td key={p.product_id}>
                   {p.highlights.slice(0, 3).join("；") || "目录未提供"}
@@ -81,7 +81,7 @@ export default function ProductComparison({
         </table>
       </div>
       <p className="drawer-note comparison-note">
-        基于当前查看的目录快照比较。不同规格、配送地区与币种可能影响最终价格；未提供的信息不做推断。
+        基于当前查看的合成目录快照比较。不同规格、供货地区与币种可能影响最终价格；未提供的信息不做推断。
       </p>
     </Modal>
   );

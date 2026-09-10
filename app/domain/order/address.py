@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Address 值对象
 
-跨境收货地址。country 用于关税/运费口径（MVP 仅存储与展示）。
+设备采购交付地址。country 用于供货、运输与税费口径（MVP 仅存储与展示）。
 """
 from __future__ import annotations
 

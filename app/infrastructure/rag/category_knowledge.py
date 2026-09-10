@@ -4,8 +4,8 @@
 品类洞察 RAG 知识库：复用 AgentScope 2.0 的 KnowledgeBase + QdrantStore + OpenAIEmbeddingModel。
 
 与商品向量索引分开两套 collection：
-    globex_products     商品卡向量（模块一：二阶段召回）
-    globex_category_kb  品类洞察知识（本模块：RAG 问答）
+    equipforge_products     设备卡向量（模块一：二阶段召回）
+    equipforge_equipment_kb 设备选型知识（本模块：RAG 问答）
 
 建库流程：TextParser 读 knowledge/*.md → ApproxTokenChunker 切块 → insert_document（按文件名做 document_id，幂等）。
 """
@@ -30,8 +30,8 @@ logger = logging.getLogger(__name__)
 KNOWLEDGE_DIR = PROJECT_ROOT / "knowledge"
 
 _KB_DESCRIPTION = (
-    "Globex 跨境电商品类洞察知识库：各品类的热卖款型、关键属性判断口径、"
-    "价格区间参考、避坑点，以及跨境到手价/免税额度/合规通则。"
+    "EquipForge 智能装备选型知识库：覆盖工业相机、镜头光源、工业传感器、"
+    "边缘控制器、运动控制与通信采集设备的场景、关键参数、兼容性、价格带和常见误区。"
 )
 
 # 以 Qdrant cosine similarity 为口径；低于此值的“最近邻”只是被迫返回的噪声，

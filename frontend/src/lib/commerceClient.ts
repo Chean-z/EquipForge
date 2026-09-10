@@ -248,7 +248,7 @@ function emptySnapshot(sessionId = newId()): CommerceSnapshot {
     products: [],
     events: [],
     status: "idle",
-    step: "随时开始新的选购",
+    step: "随时开始新的选型",
     error: null,
     searchCompleted: false,
     history: [],
@@ -262,7 +262,7 @@ function emptySnapshot(sessionId = newId()): CommerceSnapshot {
 }
 
 const EVENT_LABELS: Record<string, string> = {
-  RUN_STARTED: "开始本轮选购",
+  RUN_STARTED: "开始本轮选型",
   RUN_FINISHED: "本轮已完成",
   RUN_ERROR: "本轮遇到问题",
   TEXT_MESSAGE_START: "正在整理建议",
@@ -270,8 +270,8 @@ const EVENT_LABELS: Record<string, string> = {
   TOOL_CALL_START: "调用工具",
   TOOL_CALL_END: "工具参数已就绪",
   TOOL_CALL_RESULT: "收到工具结果",
-  STATE_SNAPSHOT: "更新商品与进度",
-  STATE_DELTA: "更新选购状态",
+  STATE_SNAPSHOT: "更新设备与进度",
+  STATE_DELTA: "更新选型状态",
   MESSAGES_SNAPSHOT: "同步最终建议",
 };
 
@@ -282,7 +282,7 @@ function connectionError(error: unknown): string {
     return "连接被服务拒绝，请检查访问配置后重试。";
   if (status === "422" || status === "400")
     return "这次请求未被接受，请调整内容后重试。";
-  if (status) return "选购服务暂时不可用，请稍后重试。";
+  if (status) return "选型服务暂时不可用，请稍后重试。";
   return "连接已中断，本轮尚未完成。请检查网络或服务后重试。";
 }
 
@@ -358,7 +358,7 @@ export class CommerceClient {
           messages: saved.messages,
           products: saved.products,
           searchCompleted: saved.searchCompleted,
-          step: "已恢复本机选购记录",
+          step: "已恢复本机选型记录",
           recoverableRunId: saved.runId ?? null,
         };
     } catch {
@@ -396,7 +396,7 @@ export class CommerceClient {
       title:
         this.snapshot.messages
           .find((message) => message.role === "user")
-          ?.content.slice(0, 32) ?? "选购记录",
+          ?.content.slice(0, 32) ?? "选型记录",
       updatedAt: Date.now(),
       messages: this.snapshot.messages.slice(-100),
       products: this.snapshot.products,
@@ -532,7 +532,7 @@ export class CommerceClient {
         if (outcome === "interrupt")
           fail("当前页面暂不支持此确认流程，请重新描述需求。");
         else if (current())
-          this.update({ status: "idle", step: "已为你整理好选购建议" });
+          this.update({ status: "idle", step: "已为你整理好选型建议" });
       },
       onRunErrorEvent: ({ event }) => {
         terminal = true;
@@ -582,7 +582,7 @@ export class CommerceClient {
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data: unknown = await response.json().catch(() => {
-      throw new Error("暂时无法读取选购记录，请稍后重试。");
+      throw new Error("暂时无法读取选型记录，请稍后重试。");
     });
     if (!isRecord(data)) throw new Error("服务端记录格式无效");
     return data;
@@ -622,7 +622,7 @@ export class CommerceClient {
       confirmations: mergeConfirmations(this.snapshot.confirmations, this.ownedConfirmations(state.confirmations)),
       recoverableRunId: running && typeof run.runId === "string" ? run.runId : null,
       status: running ? "running" : run.status === "completed" ? "idle" : run.status === "stopped" ? "stopped" : "error",
-      step: running ? "正在恢复服务端执行进度" : "已恢复服务端选购记录",
+      step: running ? "正在恢复服务端执行进度" : "已恢复服务端选型记录",
       error: ["error", "interrupted"].includes(String(run.status)) ? "该运行未完成，已恢复保存的内容；可重新提交需求。" : null,
     });
   }
@@ -728,9 +728,9 @@ export class CommerceClient {
       if (revision !== this.skillsRevision) return;
       const status = error instanceof Error ? error.message : "";
       this.update({ skills: [], skillsStatus: "error", skillsError: status.includes("409")
-        ? "选购方案刚刚更新，请刷新后再选。"
-        : /401|403/.test(status) ? "暂时无法读取选购方案，请检查访问身份后重试。"
-        : "选购方案暂时无法加载，仍可直接描述需求。" });
+        ? "选型方案刚刚更新，请刷新后再选。"
+        : /401|403/.test(status) ? "暂时无法读取选型方案，请检查访问身份后重试。"
+        : "选型方案暂时无法加载，仍可直接描述需求。" });
     }
   };
 
@@ -904,7 +904,7 @@ export class CommerceClient {
       searchCompleted: session?.searchCompleted ?? false,
       recoverableRunId: session?.runId ?? null,
       history: this.history(),
-      step: "已恢复本机选购记录",
+      step: "已恢复本机选型记录",
     });
     this.saveActiveSession();
     if (remote) void this.loadSession(id);

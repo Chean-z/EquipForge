@@ -54,7 +54,7 @@ class TestToolsDirectInvoke:
             ShoppingContextSnapshot(shopping_session_id="s1", buyer_id="b1", locale="zh-CN", currency="CNY"),
         )
         try:
-            response = await tool(normalized_query="旅行三件套 抗造")
+            response = await tool(normalized_query="P1001")
         finally:
             ShoppingContext.reset(token)
 
@@ -74,7 +74,7 @@ class TestToolsDirectInvoke:
             ShoppingContextSnapshot(shopping_session_id="s1", buyer_id="b1", locale="zh-CN", currency="CNY"),
         )
         try:
-            response = await tool(normalized_query="旅行三件套 抗造", price_max_major="300", top_k="3")
+            response = await tool(normalized_query="P1001", price_max_major="300", top_k="3")
         finally:
             ShoppingContext.reset(token)
 
@@ -86,8 +86,8 @@ class TestToolsDirectInvoke:
         # tool.invoke + tool.result 两条事件
         assert queue.qsize() == 2
 
-    async def test_product_search_tool_excludes_synthetic_polymer(self):
-        """“不要塑料”必须作为结构化材质约束进入工具调用，而非事后靠文案补救。"""
+    async def test_product_search_tool_excludes_device_tag(self):
+        """排除设备标签必须作为结构化约束进入工具调用，而非事后靠文案补救。"""
         bus = TradeEventBus()
         queue = bus.subscribe("s1")
         tool = build_product_search_tool(CatalogSearchUseCase(InMemoryProductRepository()), bus)
@@ -97,17 +97,17 @@ class TestToolsDirectInvoke:
         )
         try:
             response = await tool(
-                normalized_query="旅行三件套 抗造 轻便",
-                excluded_material_tags=["合成聚合物"],
+                normalized_query="工业相机 缺陷检测",
+                excluded_material_tags=["卷帘快门"],
             )
         finally:
             ShoppingContext.reset(token)
 
         payload = json.loads(response.content[0].text)
-        assert payload["hits"][0]["product_id"] == "P2120"
-        assert all("合成聚合物" not in hit["material_tags"] for hit in payload["hits"])
+        assert payload["hits"]
+        assert all("卷帘快门" not in hit["material_tags"] for hit in payload["hits"])
         invoke = (await queue.get()).payload
-        assert invoke["args"]["excluded_material_tags"] == ["合成聚合物"]
+        assert invoke["args"]["excluded_material_tags"] == ["卷帘快门"]
 
     async def test_product_search_tool_enforces_material_blacklist_from_context(self):
         """长期黑名单必须在工具入口兜底，不能依赖模型每次都记得传参。"""
@@ -120,18 +120,18 @@ class TestToolsDirectInvoke:
                 buyer_id="b1",
                 locale="zh-CN",
                 currency="CNY",
-                excluded_material_tags=("合成聚合物",),
+                excluded_material_tags=("卷帘快门",),
             ),
         )
         try:
-            response = await tool(normalized_query="旅行三件套 抗造 轻便")
+            response = await tool(normalized_query="工业相机 缺陷检测")
         finally:
             ShoppingContext.reset(token)
 
         payload = json.loads(response.content[0].text)
-        assert all("合成聚合物" not in hit["material_tags"] for hit in payload["hits"])
+        assert all("卷帘快门" not in hit["material_tags"] for hit in payload["hits"])
         invoke = (await queue.get()).payload
-        assert invoke["args"]["excluded_material_tags"] == ["合成聚合物"]
+        assert invoke["args"]["excluded_material_tags"] == ["卷帘快门"]
 
     async def test_product_search_tool_infers_known_category_from_normalized_query(self):
         bus = TradeEventBus()
@@ -141,18 +141,18 @@ class TestToolsDirectInvoke:
             ShoppingContextSnapshot(shopping_session_id="s1", buyer_id="b1", locale="zh-CN", currency="CNY"),
         )
         try:
-            response = await tool(normalized_query="户外运动 现货", ship_to="CN")
+            response = await tool(normalized_query="工业相机 现货", ship_to="CN")
         finally:
             ShoppingContext.reset(token)
 
         payload = json.loads(response.content[0].text)
         assert payload["hits"]
-        assert all(hit["category"] == "户外运动" for hit in payload["hits"])
+        assert all(hit["category"] == "工业相机" for hit in payload["hits"])
         invoke = (await queue.get()).payload
-        assert invoke["args"]["category"] == "户外运动"
+        assert invoke["args"]["category"] == "工业相机"
 
     async def test_product_search_tool_normalizes_leaf_category_to_catalog_category(self):
-        """模型常传“耳机”等叶子类目，不能用目录外值把候选全部硬过滤掉。"""
+        """模型常传“机器视觉相机”等叶子类目，不能用目录外值把候选全部硬过滤掉。"""
         bus = TradeEventBus()
         queue = bus.subscribe("s1")
         tool = build_product_search_tool(CatalogSearchUseCase(InMemoryProductRepository()), bus)
@@ -161,20 +161,20 @@ class TestToolsDirectInvoke:
         )
         try:
             response = await tool(
-                normalized_query="主动降噪耳机",
-                category="耳机",
-                ship_to="US",
-                target_currency="USD",
+                normalized_query="机器视觉相机 全局快门",
+                category="机器视觉相机",
+                ship_to="CN",
+                target_currency="CNY",
             )
         finally:
             ShoppingContext.reset(token)
 
         payload = json.loads(response.content[0].text)
         assert payload["hits"]
-        assert all(hit["category"] == "数码配件" for hit in payload["hits"])
+        assert all(hit["category"] == "工业相机" for hit in payload["hits"])
         assert all("landed_price" in hit for hit in payload["hits"])
         invoke = (await queue.get()).payload
-        assert invoke["args"]["category"] == "数码配件"
+        assert invoke["args"]["category"] == "工业相机"
 
     async def test_product_search_tool_rejects_bad_numeric_string(self):
         """非法数字字符串应返回 [error] 而不是抛异常。"""

@@ -30,7 +30,7 @@ def main():
     revoke.add_argument("--reason", required=True)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    registry = PromptRegistry(args.data_dir / "prompts/registry.sqlite3", toolset_contract(root, web_search_enabled=args.web_search_enabled))
+    registry = PromptRegistry(args.data_dir / "prompts/equipforge-registry.sqlite3", toolset_contract(root, web_search_enabled=args.web_search_enabled))
     try:
         if args.command == "import":
             result = registry._public_version(registry.import_version(args.yaml))

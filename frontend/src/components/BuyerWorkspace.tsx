@@ -58,10 +58,10 @@ export default function BuyerWorkspace({ mode, busy, request, onSkillsChanged }:
     <header className="workspace-heading">
       <div className="eyebrow">{mode === "skills" ? "YOUR WAY TO SHOP" : "THE LITTLE THINGS ABOUT YOU"}</div>
       <h1>{mode === "skills" ? <>把你的方法，<em>交给我。</em></> : <>你的偏好，<em>一直记得。</em></>}</h1>
-      <p>{mode === "skills" ? "写下常用的选购步骤。保存后，在对话里输入 / 随时调用。"
-        : "喜欢什么、想避开什么，都可以写在这里。每次开始选购，我会带上这些记忆。"}</p>
+      <p>{mode === "skills" ? "写下常用的设备选型步骤。保存后，在对话里输入 / 随时调用。"
+        : "常用接口、性能偏好和约束条件，都可以写在这里。每次开始选型，我会带上这些记忆。"}</p>
     </header>
-    {busy && <p className="workspace-note" role="status">正在完成这次选购，结束后可编辑。新记忆从下一轮开始生效。</p>}
+    {busy && <p className="workspace-note" role="status">正在完成这次选型，结束后可编辑。新记忆从下一轮开始生效。</p>}
     {error && <div className="workspace-error" role="alert">{error} <button type="button" onClick={() => void refresh()} disabled={saving}>重新加载</button></div>}
     {notice && <p className="workspace-notice" role="status"><Icon name="check" />{notice}</p>}
     <div className="workspace-grid">
@@ -82,7 +82,7 @@ export default function BuyerWorkspace({ mode, busy, request, onSkillsChanged }:
                 "Skill 已删除，方案菜单已同步。", () => { if (selected?.id === skill.id) editSkill(null); setDeleting(null); })}>确认删除</button>
               <button type="button" onClick={() => setDeleting(null)}>保留</button>
             </div> : <button type="button" className="workspace-delete-link" disabled={disabled} aria-label={"删除 Skill：" + skill.title} onClick={() => setDeleting(skill.id)}>删除</button>}
-          </article>) : <div className="workspace-empty"><Icon name="leaf" /><p>你的第一份选购方法，<br />从右侧的一段文字开始。</p></div>
+          </article>) : <div className="workspace-empty"><Icon name="leaf" /><p>你的第一份选型方法，<br />从右侧的一段文字开始。</p></div>
         ) : preferences.length ? preferences.map(p => <article key={p.kind + p.statement} className="workspace-item">
           <span className={"preference-kind " + p.kind}>{p.kind === "like" ? "喜欢" : "避免"}</span>
           <p>{p.statement}</p><div className="workspace-row-actions">
@@ -94,13 +94,13 @@ export default function BuyerWorkspace({ mode, busy, request, onSkillsChanged }:
       </aside>
       <div className="workspace-editor">
         <div className="workspace-section-title"><h2>{mode === "skills" ? (selected ? "编辑 Skill" : "写一份新 Skill") : (original ? "修改偏好" : "添加一条长期偏好")}</h2>
-          <span>仅用于你的选购</span></div>
+          <span>仅用于你的设备选型</span></div>
         <form onSubmit={e => {
           e.preventDefault();
           if (mode === "skills") void mutate(
             () => request(selected ? "/my-skills/" + encodeURIComponent(selected.id) : "/my-skills", selected ? "PUT" : "POST",
               { title, description, body, ...(selected ? { expected_version: selected.version } : {}) }),
-            "Skill 已保存。回到选购，输入 / 就能使用。", () => editSkill(null));
+            "Skill 已保存。回到设备选型，输入 / 就能使用。", () => editSkill(null));
           else void mutate(() => request("/preferences", "POST", { kind, statement, ...(original ? { previous_statement: original } : {}) }),
             "偏好已保存，下一轮和新会话都会读取。", () => editPreference(null));
         }}>
@@ -109,14 +109,14 @@ export default function BuyerWorkspace({ mode, busy, request, onSkillsChanged }:
               <label htmlFor="personal-skill-title">名称<input id="personal-skill-title" required maxLength={120} value={title} onChange={e => setTitle(e.target.value)} placeholder="例如：我的轻装出行方案" /></label>
               <label htmlFor="personal-skill-description">什么时候使用<input id="personal-skill-description" required maxLength={400} value={description} onChange={e => setDescription(e.target.value)} placeholder="例如：周末出游，需要按重量和预算挑装备时" /></label>
               <label htmlFor="personal-skill-body">方法与步骤<textarea id="personal-skill-body" required maxLength={12000} rows={12} value={body} onChange={e => setBody(e.target.value)}
-                placeholder={"1. 先确认行程天数、预算和目的地。\n2. 按重量、容量、材质比较候选。\n3. 信息不确定时先询问，不猜商品参数。"} /></label>
+                placeholder={"1. 先确认应用工况、预算和性能指标。\n2. 按精度、接口、响应速度比较候选。\n3. 信息不确定时先询问，不猜设备参数。"} /></label>
               <p className="workspace-help">支持 Markdown。写清步骤、约束和期望的回答形式，用到时才读取全文。</p>
             </> : <>
               <label htmlFor="preference-kind">偏好类型<select id="preference-kind" value={kind} onChange={e => setKind(e.target.value as Preference["kind"])}>
                 <option value="like">喜欢 · 希望优先考虑</option><option value="dislike">避免 · 不想要的东西</option>
               </select></label>
-              <label htmlFor="preference-statement">记住这件事<textarea id="preference-statement" required maxLength={500} rows={5} value={statement} onChange={e => setStatement(e.target.value)} placeholder="例如：喜欢轻便、小众设计的商品" /></label>
-              <p className="workspace-help">只保存长期习惯。本次预算、临时颜色等需求，直接在选购对话中告诉我。</p>
+              <label htmlFor="preference-statement">记住这件事<textarea id="preference-statement" required maxLength={500} rows={5} value={statement} onChange={e => setStatement(e.target.value)} placeholder="例如：优先支持 GigE Vision 与全局快门的设备" /></label>
+              <p className="workspace-help">只保存长期偏好。本次预算、临时工况等需求，直接在选型对话中告诉我。</p>
               <div className="workspace-example"><Icon name="chat" /><p>也可以在对话中说：<br />“把喜欢黑色改成喜欢蓝色，以后都按这个偏好。”<br />“以后不用避开真皮了，删除这条偏好。”</p></div>
             </>}
             <div className="workspace-form-footer"><span>{mode === "skills" ? body.length + " / 12000" : statement.length + " / 500"}</span>

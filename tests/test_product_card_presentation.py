@@ -16,11 +16,8 @@ from app.infrastructure.persistence.in_memory_repositories import InMemoryProduc
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize(
-    ("product_id", "filename"),
-    [("P1003", "wanderlite.png"), ("P1018", "drypack.png"), ("P1049", "budgetpack.png")],
-)
-async def test_catalog_presentation_preserves_snapshot_fields_and_labels_illustrations(product_id, filename):
+@pytest.mark.parametrize("product_id", ["P1001", "P1103", "P1104"])
+async def test_catalog_presentation_preserves_snapshot_fields_and_labels_placeholders(product_id):
     records = {
         record["product_id"]: record
         for record in (
@@ -34,18 +31,16 @@ async def test_catalog_presentation_preserves_snapshot_fields_and_labels_illustr
     products = await source_repo.find_by_ids([product_id])
     usecase = CatalogSearchUseCase(InMemoryProductRepository(products))
 
-    result = await usecase.execute(ProductSearchSpec(normalized_query=source["title"], ship_to="CN"))
+    result = await usecase.execute(ProductSearchSpec(normalized_query=product_id))
     card = result["hits"][0]
 
     for field in ("description", "rating_summary", "ships_to", "dimensions_cm", "updated_at", "skus"):
         assert card[field] == source[field], f"展示字段 {field} 必须来自目录，不能由 UI 补造"
     assert card["rating_is_live"] is False
-    assert card["image_url"] == f"/products/{filename}"
-    assert card["image_kind"] == "illustration"
-    assert "非商品实拍" in card["image_alt"]
+    assert card["image_url"] is None
+    assert card["image_kind"] == "placeholder"
+    assert card["image_alt"] == f"{source['title']}：暂无设备图片"
     assert card["default_sku_id"] in {sku["sku_id"] for sku in source["skus"] if sku["stock"] > 0}
-    image_path = PROJECT_ROOT / "frontend/public" / card["image_url"].lstrip("/")
-    assert image_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n"), "商品媒体映射必须对应可发布的 PNG 资源"
 
 
 async def test_unmapped_product_does_not_invent_photo_rating_or_shipping_promise():
@@ -60,7 +55,7 @@ async def test_unmapped_product_does_not_invent_photo_rating_or_shipping_promise
 
     assert card["image_url"] is None
     assert card["image_kind"] == "placeholder"
-    assert card["image_alt"] == "测试背包：暂无商品图片"
+    assert card["image_alt"] == "测试背包：暂无设备图片"
     assert card["rating_summary"] is None
     assert card["rating_is_live"] is False
     assert card["ships_to"] == []

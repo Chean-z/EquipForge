@@ -17,9 +17,9 @@ import { skillQueryDraft, submitSkillQuery } from "./lib/skills";
 
 type View = "shopping" | "history" | "favorites" | "skills" | "preferences";
 const STARTERS = [
-  "预算300元以内，找一个轻便的周末旅行背包，寄到中国。",
-  "想买日常通勤耳机，帮我理一理选购思路。",
-  "预算100元以内，找适合短途出行的背包。",
+  "预算5000元，为流水线缺陷检测选择一款全局快门工业相机。",
+  "选择支持Modbus TCP的边缘控制器，要求至少8路数字量输入。",
+  "比较适合机械臂定位的视觉传感器，优先考虑精度和响应速度。",
 ];
 const VIEW_KEY = "globex.workspace.view";
 function readView(): View {
@@ -85,7 +85,7 @@ export default function App() {
     try {
       localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch {
-      setToast("浏览器暂时无法保存收藏，本次使用仍可继续。 ");
+      setToast("浏览器暂时无法保存候选设备，本次使用仍可继续。 ");
     }
   }, [favorites]);
   useEffect(() => {
@@ -231,7 +231,7 @@ export default function App() {
         setFavorites((current) =>
           current.filter((item) => item.product_id !== product.product_id),
         );
-        setToast("已从心选收藏移除。");
+        setToast("已从候选设备移除。");
       } else {
         setFavorites((current) => [product, ...current].slice(0, 100));
         setToast("已收好，喜欢的可以慢慢选。 ");
@@ -246,7 +246,7 @@ export default function App() {
           current.filter((item) => item.product_id !== product.product_id),
         );
       else if (compared.length >= 3)
-        setToast("一次可以比较 3 件商品，先移出一件再试试。 ");
+        setToast("一次可以比较 3 台设备，先移出一台再试试。 ");
       else setCompared((current) => [...current, product]);
     },
     [comparedIds, compared.length],
@@ -254,7 +254,7 @@ export default function App() {
   const upsertCompare = useCallback(
     (product: ProductCard) => {
       if (!comparedIds.has(product.product_id) && compared.length >= 3) {
-        setToast("一次可以比较 3 件商品，先移出一件再试试。 ");
+        setToast("一次可以比较 3 台设备，先移出一台再试试。 ");
         return;
       }
       // 详情选择规格是新增或更新；只有商品卡复选框负责移除比较。
@@ -282,9 +282,9 @@ export default function App() {
     />
   );
   const navItems: { id: View; label: string; icon: string }[] = [
-    { id: "shopping", label: "我的选购", icon: "bag" },
+    { id: "shopping", label: "设备选型", icon: "bag" },
     { id: "history", label: "对话历史", icon: "chat" },
-    { id: "favorites", label: "心选收藏", icon: "heart" },
+    { id: "favorites", label: "候选设备", icon: "heart" },
     { id: "skills", label: "我的 Skill", icon: "leaf" },
     { id: "preferences", label: "长期偏好", icon: "spark" },
   ];
@@ -295,17 +295,17 @@ export default function App() {
         <button
           className="brand"
           onClick={() => switchView("shopping")}
-          aria-label="Globex 环球好物首页"
+          aria-label="EquipForge 智能装备选型首页"
         >
           <Icon name="globe" className="brand-mark" />
           <span>
-            <span className="brand-name">Globex</span>
-            <span className="brand-subtitle">环球好物</span>
+            <span className="brand-name">EquipForge</span>
+            <span className="brand-subtitle">智能装备选型</span>
           </span>
         </button>
         <button className="new-chat" onClick={newShopping} disabled={busy}>
           <Icon name="plus" />
-          开启一次新选购
+          开启一次新选型
         </button>
         <nav className="nav">
           {navItems.map((item) => (
@@ -323,7 +323,7 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="nav-label">最近选购</div>
+        <div className="nav-label">最近选型</div>
         {agent.history.slice(0, 4).map((item) => (
           <button
             className="history-short"
@@ -336,22 +336,22 @@ export default function App() {
           </button>
         ))}
         {!agent.history.length && (
-          <p className="sidebar-empty">第一段选购，等你开启。</p>
+          <p className="sidebar-empty">第一段设备选型，等你开启。</p>
         )}
         <div className="sidebar-bottom">
           <div className="sidebar-note">
             <Icon name="globe" className="little-orbit" />
             <p>
-              世界很大，
+              工业场景各有不同，
               <br />
-              适合你的，刚刚好。
+              参数匹配，决策有据。
             </p>
           </div>
           <div className="profile">
-            <span className="avatar">旅</span>
+            <span className="avatar">工</span>
             <span>
-              <span className="profile-name">好物探索家</span>
-              <span className="profile-caption">每一次选择，都有新发现</span>
+              <span className="profile-name">装备选型工程师</span>
+              <span className="profile-caption">让每一次决策都有依据</span>
             </span>
             <Icon name="leaf" />
           </div>
@@ -361,14 +361,14 @@ export default function App() {
         <div className="content">
           <header className="topbar">
             <div className="breadcrumb">
-              <span>环球好物</span>
+              <span>智能装备选型</span>
               <span>／</span>
               <span>
                 {view === "skills" ? "我的 Skill" : view === "preferences" ? "长期偏好" : view === "history"
-                  ? "选购对话历史"
+                  ? "设备选型历史"
                   : view === "favorites"
-                    ? "心选收藏"
-                    : "为你挑选"}
+                    ? "候选设备"
+                    : "辅助决策"}
               </span>
             </div>
             <button
@@ -376,18 +376,18 @@ export default function App() {
               onClick={() => switchView("shopping")}
             >
               <Icon name="globe" />
-              Globex
+              EquipForge
             </button>
             <div className="location">
               <Icon name="pin" />
               {landedDestination
-                ? `配送至 ${landedDestination}`
-                : "好物，跨越距离"}
+                ? `供货至 ${landedDestination}`
+                : "参数匹配，辅助决策"}
             </div>
           </header>
           <nav className="mobile-nav" aria-label="移动导航">
             <button onClick={newShopping} disabled={busy}>
-              新选购
+              新选型
             </button>
             {navItems.map((item) => (
               <button
@@ -404,28 +404,28 @@ export default function App() {
           {view === "shopping" && (
             <>
               <section className="hero">
-                <div className="eyebrow">A LITTLE LESS, A LITTLE BETTER</div>
+                <div className="eyebrow">ENGINEERED FOR BETTER DECISIONS</div>
                 <h1>
-                  为下一次出发，<em>选得刚刚好。</em>
+                  面向真实工况，<em>选对智能装备。</em>
                 </h1>
-                <p>说说你的期待。世界各地的好物，我陪你慢慢选。</p>
+                <p>描述应用场景、预算与关键参数，EquipForge 为你检索、比较并生成选型建议。</p>
               </section>
               {!agent.messages.length ? (
                 <section className="welcome-panel">
                   <Icon name="globe" className="welcome-orbit" />
-                  <h2>下一件好物，你想找什么？</h2>
-                  <p>从一个用途、一段旅程，或一个小偏好聊起。</p>
+                  <h2>这一次，要解决什么工程问题？</h2>
+                  <p>从应用工况、性能指标或采购预算开始。</p>
                   <div className="welcome-ideas">
                     <button onClick={() => submit(STARTERS[0])}>
-                      周末出游，轻便背包
+                      流水线缺陷检测工业相机
                       <Icon name="arrow" />
                     </button>
                     <button onClick={() => submit(STARTERS[1])}>
-                      通勤路上的好声音
+                      Modbus TCP 边缘控制器
                       <Icon name="arrow" />
                     </button>
                     <button onClick={() => submit(STARTERS[2])}>
-                      预算 100 元以内
+                      机械臂定位视觉传感器
                       <Icon name="arrow" />
                     </button>
                   </div>
@@ -434,7 +434,7 @@ export default function App() {
                   </span>
                 </section>
               ) : (
-                <section className="conversation" aria-label="选购对话">
+                <section className="conversation" aria-label="设备选型对话">
                   {agent.messages.map((message, index) =>
                     message.role === "user" ? (
                       <div className="query-row" key={message.id}>
@@ -480,7 +480,7 @@ export default function App() {
                 <div className="error-panel" role="alert">
                   <Icon name="info" />
                   <div>
-                    <strong>暂时没能完成这次选购</strong>
+                    <strong>暂时没能完成这次选型</strong>
                     <p>{agent.error}</p>
                   </div>
                   {agent.recoverableRunId ? (
@@ -509,29 +509,29 @@ export default function App() {
                 />
               )}
               {agent.products.length > 0 && (
-                <section className="search-results" aria-label="商品搜索结果">
+                <section className="search-results" aria-label="设备搜索结果">
                   <div className="results-heading">
                     <div className="results-label">
-                      <strong>这次找到的好物</strong> · {agent.products.length}{" "}
-                      件
+                      <strong>这次找到的候选设备</strong> · {agent.products.length}{" "}
+                      台
                     </div>
                     <button
                       className="results-action"
                       onClick={() =>
                         setToast(
-                          "勾选商品卡下方的“加入比较”，可并排比较 2 至 3 件商品。 ",
+                          "勾选设备卡下方的“加入比较”，可并排比较 2 至 3 台设备。 ",
                         )
                       }
                     >
                       <Icon name="compare" />
-                      勾选商品，轻松对比
+                      勾选设备，参数对比
                     </button>
                   </div>
                   {renderCards(agent.products)}
                   <div className="results-footnote">
                     <Icon name="info" />
                     <span>
-                      结果来自商品目录。示意图与样例评分均已标注，价格以具体规格及配送条件为准。
+                      结果来自合成设备目录。示意图与样例评分均已标注，价格与供货信息以具体规格为准。
                     </span>
                   </div>
                 </section>
@@ -549,8 +549,8 @@ export default function App() {
                     </h2>
                     <p>
                       {agent.status === "stopped"
-                        ? "本轮已停止，尚未收到商品结果。调整需求后可以重新开始。"
-                        : "这次检索没有返回符合条件的商品。可以调整预算、品类或配送地区，再一起看看。"}
+                        ? "本轮已停止，尚未收到设备结果。调整需求后可以重新开始。"
+                        : "这次检索没有返回符合条件的设备。可以调整预算、类别或关键参数，再一起看看。"}
                     </p>
                     <button
                       onClick={() => {
@@ -566,7 +566,7 @@ export default function App() {
               {busy && !agent.products.length && (
                 <div
                   className="product-grid loading-results"
-                  aria-label="正在查找商品"
+                  aria-label="正在查找设备"
                 >
                   <div className="loading-card" />
                   <div className="loading-card" />
@@ -602,7 +602,7 @@ export default function App() {
                     className="suggestion"
                     onClick={() => switchView("favorites")}
                   >
-                    看看我的收藏
+                    查看候选设备
                     <Icon name="heart" />
                   </button>
                 </div>
@@ -613,19 +613,19 @@ export default function App() {
           )}
           {view === "favorites" && (
             <>
-              <h1 className="library-title">心动的，先留在这里。</h1>
+              <h1 className="library-title">候选设备，集中比较。</h1>
               <p className="library-description">
-                收藏保存在本机浏览器。以下是上次查看的商品信息，价格与库存请重新查询确认。
+                候选设备保存在本机浏览器。以下是上次查看的设备信息，价格与库存请重新查询确认。
               </p>
               {favorites.length ? (
                 renderCards(favorites)
               ) : (
                 <section className="empty-state">
                   <Icon name="heart" />
-                  <h2>等待第一份心动</h2>
-                  <p>点击商品右上角的爱心，就能把喜欢的留在这里。</p>
+                  <h2>等待第一台候选设备</h2>
+                  <p>点击设备右上角的收藏按钮，就能将它加入候选清单。</p>
                   <button onClick={() => switchView("shopping")}>
-                    去发现好物
+                    去选择设备
                     <Icon name="arrow" />
                   </button>
                 </section>
@@ -636,7 +636,7 @@ export default function App() {
             <>
               <h1 className="library-title">每一次期待，都有迹可循。</h1>
               <p className="library-description">
-                同一买家身份的选购记录由服务端保存，断线后可恢复。浏览器另保留最近 12 段缓存；本机收藏与身份信息仍需自行保留。
+                同一用户身份的选型记录由服务端保存，断线后可恢复。浏览器另保留最近 12 段缓存；本机候选设备与身份信息仍需自行保留。
               </p>
               {agent.historyError && <p role="status">{agent.historyError}</p>}
               <div className="history-list">
@@ -655,7 +655,7 @@ export default function App() {
                         <strong>{item.title}</strong>
                         <small>
                           {new Date(item.updatedAt).toLocaleString("zh-CN")}
-                          {item.id === agent.sessionId ? " · 当前选购" : ""}
+                          {item.id === agent.sessionId ? " · 当前选型" : ""}
                         </small>
                       </span>
                       <Icon name="arrow" />
@@ -664,10 +664,10 @@ export default function App() {
                 ) : (
                   <section className="empty-state">
                     <Icon name="chat" />
-                    <h2>从第一次选购开始</h2>
-                    <p>你和 Globex 的每次交流，会为下一次选择留下一点线索。</p>
+                    <h2>从第一次设备选型开始</h2>
+                    <p>你和 EquipForge 的每次交流，都会为下一次工程决策留下线索。</p>
                     <button onClick={newShopping}>
-                      开启新的选购
+                      开启新的选型
                       <Icon name="arrow" />
                     </button>
                   </section>
@@ -713,7 +713,7 @@ export default function App() {
           >
             <div className="composer-plan-controls">
               <button type="button" className="plan-picker-toggle" aria-expanded={planPickerOpen} aria-controls="composer-plans"
-                disabled={busy} onClick={() => setPlanPickerOpen(!planPickerOpen)}><Icon name="leaf" />选购方案</button>
+                disabled={busy} onClick={() => setPlanPickerOpen(!planPickerOpen)}><Icon name="leaf" />选型方案</button>
               {selectedSkill ? <div className="selected-plan"><span>已选择 · {selectedSkill.title}</span>
                 <button type="button" aria-label="取消已选方案" disabled={busy} onClick={cancelSkill}><Icon name="close" /></button></div>
                 : <span className="plan-automatic">直接提问 · 自动匹配</span>}
@@ -722,7 +722,7 @@ export default function App() {
               <ShoppingPlans {...planProps} compact />
             </div>}
             <label htmlFor="query" className="sr-only">
-              告诉 Globex 你想寻找的好物
+              告诉 EquipForge 你的装备需求
             </label>
             <SkillQueryInput
               key={agent.sessionId}
@@ -741,13 +741,13 @@ export default function App() {
             <div className="composer-bottom">
               <span className="composer-hint">
                 <Icon name="spark" />
-                告诉我用途、预算，或你在意的小细节
+                告诉我应用工况、预算与关键参数
               </span>
               <button
                 type="submit"
                 className={`send-button ${busy ? "stop" : ""}`}
                 disabled={!busy && (!input.trim() || slashMenuOpen)}
-                aria-label={busy ? "停止生成" : "发送选购需求"}
+                aria-label={busy ? "停止生成" : "发送选型需求"}
               >
                 <Icon name={busy ? "stop" : "up"} />
                 {busy && <span>停止</span>}
@@ -755,9 +755,9 @@ export default function App() {
             </div>
           </form>
           <footer className="preview-footer">
-            <span>Globex 环球好物</span>
+            <span>EquipForge 智能装备选型</span>
             <span>·</span>
-            <span>认真挑选，从容决定</span>
+            <span>参数可比，决策有据</span>
           </footer>
         </div>
       </div>}

@@ -26,8 +26,8 @@ export function ProductImage({
     return (
       <div className={`image-placeholder ${className}`}>
         <Icon name="bag" />
-        <span>{product.category || "好物详情"}</span>
-        <small>暂未提供商品图片</small>
+        <span>{product.category || "设备详情"}</span>
+        <small>暂未提供设备图片</small>
       </div>
     );
   return (
@@ -91,13 +91,13 @@ function ProductCards({
               </button>
               <span className="visual-caption">
                 {product.image_kind === "illustration"
-                  ? "商品示意图 · 非实物照片"
-                  : "商品图片待补充"}
+                  ? "设备示意图 · 非实物照片"
+                  : "设备图片待补充"}
               </span>
             </div>
             <div className="product-body">
               <div className="product-topline">
-                <span>{product.brand || "精选商品"}</span>
+                <span>{product.brand || "候选设备"}</span>
                 {rating && (
                   <span className="rating">
                     <i>★</i> {rating.average.toFixed(1)}{" "}
@@ -112,24 +112,24 @@ function ProductCards({
                 {product.title}
               </button>
               <div className="product-subtitle">
-                {primary?.spec || product.highlights[0] || "查看商品详细信息"}
+                {primary?.spec || product.highlights[0] || "查看设备详细信息"}
               </div>
               <div className="product-price-row">
                 <div className="price">
                   {money(product.price_major, product.currency)}
                 </div>
-                <span className="price-kind">商品价</span>
+                <span className="price-kind">参考采购价</span>
               </div>
               {landed &&
               !landed.unavailable_reason &&
               Number.isFinite(landed.landed_total_major) ? (
                 <div className="card-landed">
                   到手价 {money(landed.landed_total_major, landed.currency)}
-                  <span>配送至 {landed.ship_to} · 默认规格</span>
+                  <span>供货至 {landed.ship_to} · 默认规格</span>
                 </div>
               ) : (
                 <div className="card-landed pending">
-                  到手价待目的地与规格确认
+                  采购参考价待地区与规格确认
                 </div>
               )}
               <div className="product-footer">

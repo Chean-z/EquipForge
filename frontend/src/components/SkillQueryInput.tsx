@@ -69,12 +69,12 @@ export default forwardRef<HTMLTextAreaElement, Props>(function SkillQueryInput({
     onSelect(skill, draft);
   };
   return <div className="skill-query-input">
-    {open && <div className="slash-skill-menu" aria-label="选购方案菜单" onMouseDown={(event) => event.preventDefault()}>
-      <div className="slash-skill-heading"><span><Icon name="leaf" />选择选购方案</span>
+    {open && <div className="slash-skill-menu" aria-label="选型方案菜单" onMouseDown={(event) => event.preventDefault()}>
+      <div className="slash-skill-heading"><span><Icon name="leaf" />选择选型方案</span>
         <button type="button" onClick={onRefresh} disabled={status === "loading"}>刷新</button></div>
       {status === "loading" ? <p className="slash-skill-empty" role="status">正在查看可用方案…</p>
-        : status === "error" ? <p className="slash-skill-empty" role="status">{error || "选购方案暂时无法加载，可直接描述需求。"}</p>
-        : skills.length === 0 ? <p className="slash-skill-empty" role="status">选购方案筹备中，可直接描述需求</p>
+        : status === "error" ? <p className="slash-skill-empty" role="status">{error || "选型方案暂时无法加载，可直接描述需求。"}</p>
+        : skills.length === 0 ? <p className="slash-skill-empty" role="status">选型方案筹备中，可直接描述需求</p>
         : matches.length === 0 ? <p className="slash-skill-empty" role="status">没有匹配的方案，换个名称试试。</p> : null}
       <div role="listbox" id="slash-skill-options" aria-label="可选方案" className="slash-skill-options">
         {status === "ready" && matches.map((skill, position) => <button type="button" role="option"
@@ -92,7 +92,7 @@ export default forwardRef<HTMLTextAreaElement, Props>(function SkillQueryInput({
       role="combobox" aria-autocomplete="list" aria-expanded={open}
       aria-controls={open ? "slash-skill-options" : undefined}
       aria-activedescendant={open && status === "ready" && matches.length ? `slash-skill-option-${index}` : undefined}
-      placeholder="描述你的需求，或输入 / 选择选购方案"
+      placeholder="描述设备需求，或输入 / 选择选型方案"
       onChange={(event) => { onChange(event.target.value); sync(event.target, true); }}
       onSelect={(event) => sync(event.currentTarget)}
       onBlur={close}

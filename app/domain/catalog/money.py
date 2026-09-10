@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Money 值对象
 
-跨境业务中价格是核心不变量，统一以最小货币单位（分）存储，避免浮点误差。
+设备采购中价格是核心不变量，统一以最小货币单位（分）存储，避免浮点误差。
 不变量：amount_in_minor_units 必须为非负整数；currency 必须是受支持的 ISO-4217 三位代码。
 """
 from __future__ import annotations

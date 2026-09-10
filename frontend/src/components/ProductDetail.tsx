@@ -29,13 +29,13 @@ export default function ProductDetail({
     !landed.unavailable_reason &&
     Number.isFinite(landed.landed_total_major);
   return (
-    <Modal title={`${product.title} 商品详情`} drawer onClose={onClose}>
+    <Modal title={`${product.title} 设备详情`} drawer onClose={onClose}>
       <div className="drawer-visual">
         <ProductImage product={product} />
         <span className="visual-caption">
           {product.image_kind === "illustration"
-            ? "商品示意图 · 非实物照片"
-            : "暂无商品实拍"}
+            ? "设备示意图 · 非实物照片"
+            : "暂无设备实拍"}
         </span>
       </div>
       <div className="drawer-kicker">
@@ -51,7 +51,7 @@ export default function ProductDetail({
           sku?.currency ?? product.currency,
         )}
       </div>
-      <span className="detail-price-kind">当前规格商品价</span>
+      <span className="detail-price-kind">当前规格参考采购价</span>
       {product.skus.length > 0 && (
         <fieldset className="sku-picker">
           <legend>选择规格</legend>
@@ -83,7 +83,7 @@ export default function ProductDetail({
           </div>
         )}
         <div>
-          <span>商品分类</span>
+          <span>设备分类</span>
           <span>{product.category}</span>
         </div>
         <div>
@@ -92,7 +92,7 @@ export default function ProductDetail({
         </div>
         {(product.ships_to?.length ?? 0) > 0 && (
           <div>
-            <span>配送地区</span>
+            <span>供货地区</span>
             <span>{product.ships_to?.join(" / ")}</span>
           </div>
         )}
@@ -112,28 +112,28 @@ export default function ProductDetail({
             到手价 {money(landed.landed_total_major, landed.currency)}
           </strong>
           <span>
-            小计 {money(landed.subtotal_major, landed.currency)} + 运费{" "}
-            {money(landed.freight_major, landed.currency)} + 关税{" "}
+            小计 {money(landed.subtotal_major, landed.currency)} + 运输费{" "}
+            {money(landed.freight_major, landed.currency)} + 其他费用{" "}
             {money(landed.tariff_major, landed.currency)}
           </span>
-          <small>配送至 {landed.ship_to} · 对应当前默认规格报价</small>
+          <small>供货至 {landed.ship_to} · 对应当前默认规格报价</small>
         </div>
       ) : (
         <p className="drawer-note">
           {skuId !== product.default_sku_id
             ? "已更换规格，到手价需重新查询。"
-            : landed?.unavailable_reason || "到手价待目的地与规格确认。"}
+            : landed?.unavailable_reason || "采购参考价待地区与规格确认。"}
         </p>
       )}
       <p className="drawer-note">
-        价格、库存为目录查询结果，购买前需要再次核对。图片与评分如标注为示意或样例，不代表实时平台信息。
+        价格、库存为合成目录查询结果，采购前需要再次核对。图片与评分如标注为示意或样例，不代表真实厂商信息。
       </p>
       <button
         className="primary-button"
         disabled={busy}
         onClick={() => {
           onAsk(
-            `请进一步核对「${product.title}」（product_id=${product.product_id}${sku ? `，sku_id=${sku.sku_id}，规格=${sku.spec}` : ""}）的当前库存与到手价。`,
+            `请进一步核对「${product.title}」（product_id=${product.product_id}${sku ? `，sku_id=${sku.sku_id}，规格=${sku.spec}` : ""}）的当前库存与采购参考价。`,
           );
           onClose();
         }}
@@ -146,7 +146,7 @@ export default function ProductDetail({
         disabled={busy || !sku || sku.stock <= 0}
         onClick={() => sku && onPrepare(product, sku.sku_id)}
       >
-        准备下单意向
+        生成采购意向
       </button>
       <button
         className="drawer-compare"

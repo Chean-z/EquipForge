@@ -50,8 +50,8 @@ function Markdown({
       </div>
       <details className="answer-details">
         <summary>
-          <span className="expand-label">展开完整选购建议</span>
-          <span className="collapse-label">收起完整选购建议</span>
+          <span className="expand-label">展开完整选型建议</span>
+          <span className="collapse-label">收起完整选型建议</span>
           <span className="expand-chevron" aria-hidden="true">
             ⌄
           </span>

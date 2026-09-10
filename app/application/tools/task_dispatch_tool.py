@@ -85,7 +85,7 @@ def build_task_dispatch_tool(
 
         Args:
             subagent_type (`str`):
-                子代理类型："search_agent"（跨境商品检索专家）或 "trade_agent"（下单交易专家）。
+                子代理类型："search_agent"（智能装备检索专家）或 "trade_agent"（采购意向专家）。
             demands (`str`):
                 自包含的自然语言指令，必须包含子代理完成任务所需的全部上下文
                 （买家偏好、预算、product_id/sku_id、收货地址等），子代理看不到主对话历史。

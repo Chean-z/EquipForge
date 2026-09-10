@@ -1,125 +1,119 @@
 # -*- coding: utf-8 -*-
-"""生成带来源/时效元数据的离线评测知识库语料。"""
+"""生成 EquipForge 智能装备选型的合成知识库快照。"""
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
-
 
 _ROOT = Path(__file__).resolve().parents[1]
 _KNOWLEDGE = _ROOT / "knowledge"
 _MANIFEST = _KNOWLEDGE / "manifest.jsonl"
-_CATEGORIES = (
-    ("travel-gear", "旅行装备", "收纳、舒适与行李组织"),
-    ("digital-accessories", "数码配件", "供电、音频与连接"),
-    ("home-living", "家居生活", "材质、器物与易碎运输"),
-    ("outdoor-sports", "户外运动", "防护、重量与环境适配"),
-    ("beauty-care", "美妆个护", "成分、低敏与旅行分装"),
-    ("kitchen-dining", "厨房餐饮", "食品接触、保温与清洁"),
-    ("office-study", "办公学习", "护眼、收纳与跨境供电"),
-    ("baby-pet", "母婴宠物", "安全、尺寸与可清洁性"),
+_FACETS = (
+    ("overview", "场景拆解", "把自然语言需求转成工况、任务目标、节拍、预算和部署边界"),
+    ("parameters", "参数判断", "区分硬约束、性能指标与偏好项，并保留数值单位和测试条件"),
+    ("compatibility", "兼容性", "核对机械、电气、通信、软件和环境条件能否组成可落地方案"),
+    ("integration", "集成实施", "规划安装、标定、联调、验收以及异常降级路径"),
+    ("budget", "预算评估", "比较设备价、必要附件、集成调试和后期维护构成的样例总成本"),
+    ("risks", "风险避坑", "识别参数口径、接口错配、工况变化和证据不足带来的选型风险"),
 )
-_REGIONS = ("US", "EU", "JP", "SG", "CN")
 
 
-def _long_body(category: str, focus: str, variant: str) -> str:
-    dimensions = (
-        ("场景", "先把使用场景拆成携带频率、接触对象和使用时长；{category}{variant}只讨论{focus}，不把其他品类的经验直接套用。"),
-        ("预算", "{category}{variant}需要分别记录商品标价、目标币种、运费和税费，预算不足时应指出是哪一项造成缺口。"),
-        ("材质", "核对{category}{variant}的材质标签与实际接触部位；营销词不能替代对{focus}相关属性的可验证说明。"),
-        ("规格", "对{category}{variant}比较重量、尺寸、容量或功率时，应保留单位和 SKU 规格，避免把不同版本混成同一结论。"),
-        ("库存", "{category}{variant}的默认规格可能缺货，推荐前应检查可售 SKU；无库存不是可用候选，只能作为替代说明。"),
-        ("配送", "{category}{variant}的配送范围要按目的国核验；没有覆盖该地区时，不能根据相近国家的规则推断可送达。"),
-        ("风险", "遇到{category}{variant}的过敏、易碎、禁运或安全问题，应列出缺失证据并要求通过实时工具或商品页确认。"),
-        ("时效", "{category}{variant}资料的更新时间影响判断；当资料早于本次评测快照时，应提示用户结果可能过期。"),
-        ("比较", "{category}{variant}的候选排序应说明各自满足了哪些{focus}条件，不能只因为标题相似就宣称同样适合。"),
-        ("表达", "回答{category}{variant}问题时，区分已验证事实、推测和待确认事项；价格与配送数字只能引用当次工具结果。"),
-        ("复核", "在给出{category}{variant}结论前复核目的地、币种和 SKU 是否一致；任一条件变化都应重新计算而非沿用旧答案。"),
-        ("边界", "{category}{variant}快照用于离线评测，不替代商品说明或监管公告；涉及{focus}的强断言必须附带来源和有效期。"),
-        ("替代", "当{category}{variant}没有完全满足{focus}的商品时，应给出约束不满足的原因，而不是把近似候选包装成等价替代。"),
-        ("证据", "{category}{variant}的每个关键结论应能回指材质、尺寸、库存、配送或报价字段；缺少证据时只允许提出待确认建议。"),
-        ("优先级", "买家同时提出预算和安全限制时，{category}{variant}应先满足不可妥协的{focus}约束，再解释可调节的偏好。"),
-        ("版本", "记录{category}{variant}使用的文档版本和商品更新时间，避免把历史{focus}结论混入本次推荐。"),
-        ("地域", "{category}{variant}的地区规则必须与收货地逐项对应；GLOBAL 指引不能直接替代针对{focus}的区域性证据。"),
-        ("不确定性", "如果{category}{variant}缺少判断{focus}所需字段，回复要明确说明未知项及补充信息，而不是以常识补齐。"),
-        ("交叉", "{category}{variant}与其他品类共同决策时，分别列出各自的{focus}条件，避免一篇文档替另一篇文档做结论。"),
-        ("复盘", "遇到用户追问时，重新展示{category}{variant}已验证的{focus}证据和未验证条件，保证多轮回答没有悄悄改变口径。"),
-        ("来源", "{category}{variant}引用外部资料时要标出来源类型和发布日期；没有可靠来源的{focus}信息只能作为待核实线索。"),
-        ("量化", "比较{category}{variant}候选时，以统一单位量化重量、容量、功率或价格，避免用模糊形容词代替{focus}判断。"),
-        ("例外", "{category}{variant}中存在例外条件时，应把触发条件写清楚；不能因为多数商品符合{focus}就默认所有商品都符合。"),
-        ("筛选", "先以{category}{variant}的硬约束缩小候选，再比较{focus}偏好；筛选顺序应能从工具事件和字段值复现。"),
-        ("沟通", "向用户解释{category}{variant}取舍时，说明哪个{focus}条件导致排除，帮助用户决定是否放宽限制。"),
-        ("异常", "当{category}{variant}工具返回为空、超时或字段不完整时，回复应报告异常并停止对{focus}做确定性推荐。"),
-        ("一致", "确保{category}{variant}的商品卡、到手价和最终回复使用同一币种与 SKU，避免{focus}结论在不同环节矛盾。"),
-        ("维护", "{category}{variant}文档更新后应重新验证涉及{focus}的评测金标，防止旧样本继续奖励过期行为。"),
-        ("升级", "当{category}{variant}问题超出合成快照范围时，建议升级到实时商品或权威来源核验，而不是扩写未经证实的{focus}细节。"),
-        ("记录", "保留{category}{variant}推荐采用的关键字段和理由，使后续评测能检查{focus}判断是否来自可追溯证据。"),
-    )
-    paragraphs = [
-        f"# {category}{variant}评测知识快照",
-        "",
-        "## 适用范围",
-        f"本文用于 Globex 离线评测中的{category}问题，重点覆盖{focus}。内容是合成的演示快照，不能替代实时商品说明、法律意见或监管机构公告。",
-        "",
-        "## 判断卡片",
-    ]
-    for index, (title, template) in enumerate(dimensions, start=1):
-        paragraphs += [f"### {index}. {title}", template.format(category=category, variant=variant, focus=focus), ""]
-    paragraphs += [
-        "## 回复边界",
-        f"当{category}{variant}文档与实时商品字段冲突时，以实时字段为准，并解释{focus}中仍无法确定的部分。",
-    ]
-    return "\n".join(paragraphs) + "\n"
+@dataclass(frozen=True)
+class EquipmentCategory:
+    slug: str
+    name: str
+    scope: str
+    parameters: tuple[str, ...]
+    compatibility: tuple[str, ...]
+    risks: tuple[str, ...]
+    scenarios: tuple[str, ...]
 
 
-def _entry(filename: str, document_id: str, *, region: str, topic: str) -> dict:
-    return {
-        "document_id": document_id,
-        "filename": filename,
-        "source": "Globex 离线评测知识快照（合成演示，不用于实时法规结论）",
-        "source_type": "synthetic_evaluation_fixture",
-        "published_at": "2026-08-01",
-        "effective_from": "2026-08-01",
-        "effective_to": "2026-12-31",
-        "region": region,
-        "version": "2026.08-eval-v1",
-        "topic": topic,
-    }
+_CATEGORIES = (
+    EquipmentCategory("industrial-camera", "工业相机", "机器视觉采集与在线检测",
+        ("成像方式与快门类型", "有效分辨率与像元尺寸", "帧率、曝光和触发", "动态范围与信噪表现", "镜头接口与传感器靶面", "数据接口与传输距离", "供电方式与功耗", "防护、温度和安装尺寸"),
+        ("镜头像面和接口", "光源触发与控制", "主机带宽和驱动", "视觉软件与图像格式", "产线编码器或外部触发"),
+        ("只看像素忽略视野精度", "运动目标使用不合适的快门", "带宽不足导致丢帧", "镜头成像圈覆盖不足", "现场照明变化未留余量"),
+        ("流水线外观缺陷检测", "机械臂定位引导", "字符与条码识别", "高速运动目标抓拍")),
+    EquipmentCategory("lens-lighting", "镜头与光源", "机器视觉成像链路设计",
+        ("视野、工作距离和目标尺寸", "焦距与放大倍率", "接口和成像圈", "景深与光圈", "畸变和分辨能力", "光源形态与照射角度", "波段、亮度与均匀性", "频闪响应和控制方式"),
+        ("相机传感器尺寸", "镜头接口与后焦", "光源控制器通道", "触发电平和时序", "安装空间与散热"),
+        ("先选镜头再确认视野", "忽略传感器靶面造成暗角", "反光表面照明角度不当", "景深不足导致边缘失焦", "频闪亮度与占空比超限"),
+        ("金属表面划痕检测", "透明件轮廓测量", "平面字符均匀照明", "小尺寸零件精密成像")),
+    EquipmentCategory("industrial-sensor", "工业传感器", "状态感知、位置检测与过程测量",
+        ("被测量类型与量程", "精度、重复性和分辨率", "响应时间与采样频率", "检测距离与盲区", "输出信号和接线制式", "供电电压与功耗", "安装方式和结构尺寸", "温湿度、防护与抗干扰"),
+        ("控制器输入类型", "模拟量程或数字协议", "电气隔离与接地", "线缆长度和连接器", "标定、诊断与维护工具"),
+        ("把分辨率当作绝对精度", "量程过大损失有效分辨率", "忽略被测材质差异", "噪声环境没有屏蔽接地", "响应速度不满足产线节拍"),
+        ("工件到位检测", "压力与重量采集", "设备振动监测", "液位或距离测量")),
+    EquipmentCategory("edge-controller", "边缘控制器", "现场控制、协议汇聚与边缘推理",
+        ("处理器架构与计算负载", "内存和本地存储", "数字量与模拟量点数", "实时性与任务周期", "工业网络和现场总线", "扩展槽与外设接口", "操作系统和软件运行环境", "供电、散热与环境等级"),
+        ("现有 PLC 或上位机协议", "I/O 电平和隔离", "容器或推理运行时", "远程运维与日志", "机柜空间和电源预算"),
+        ("峰值算力代替持续性能", "接口数量够但协议不兼容", "忽略实时控制确定性", "散热条件不足触发降频", "软件依赖无法离线部署"),
+        ("视觉推理边缘部署", "多设备数据汇聚", "产线逻辑与运动协同", "设备预测性维护网关")),
+    EquipmentCategory("motion-control", "运动控制设备", "执行机构驱动与多轴轨迹控制",
+        ("轴数与运动拓扑", "负载、转矩和惯量", "速度、加速度与行程", "定位精度和重复精度", "控制周期与同步能力", "编码器和反馈类型", "功率等级与制动需求", "机械安装和安全功能"),
+        ("电机与驱动器额定范围", "编码器协议和分辨率", "控制器总线周期", "机械传动比与惯量匹配", "限位、急停和安全回路"),
+        ("只按额定转矩选型", "忽略加减速峰值负载", "定位精度与重复精度混淆", "多轴同步周期不满足轨迹", "机械共振没有调试余量"),
+        ("机械臂关节驱动", "直线模组定位", "输送线同步跟踪", "点胶或装配轨迹控制")),
+    EquipmentCategory("communication-acquisition", "通信与采集模块", "工业数据接入、协议转换与信号采集",
+        ("通道数量与信号类型", "采样率和同步方式", "分辨率与输入量程", "隔离耐受与共模范围", "现场总线和上行协议", "时间戳与缓存能力", "连接器、接线与扩展", "供电、温度和防护条件"),
+        ("传感器输出和激励", "控制器或服务器协议", "网络拓扑与地址规划", "时钟同步和数据格式", "驱动、SDK 与配置工具"),
+        ("总采样率误当单通道采样率", "隔离指标不足引入地环路", "协议名称相同但对象模型不同", "网络拥塞没有缓存策略", "时间戳来源不一致无法对齐"),
+        ("多路模拟信号采集", "老旧设备协议转换", "分布式 I/O 扩展", "设备能耗与状态采集")),
+)
 
 
-def build_manifest() -> list[dict]:
-    entries: list[dict] = []
-    for filename in sorted(path.name for path in _KNOWLEDGE.glob("*.md") if not path.name.startswith("eval-")):
-        # 历史的跨境通则包含关税/免税/限制等政策性说法，必须走来源和有效期门禁。
-        topic = "policy" if filename == "cross-border-guide.md" else "category"
-        entries.append(_entry(filename, Path(filename).stem, region="GLOBAL", topic=topic))
-    for slug, category, focus in _CATEGORIES:
-        for variant in ("概览", "参数判断", "价格与预算", "避坑与合规"):
-            filename = f"eval-{slug}-{variant}.md"
-            path = _KNOWLEDGE / filename
-            path.write_text(_long_body(category, focus, variant), encoding="utf-8")
-            entries.append(_entry(filename, Path(filename).stem, region="GLOBAL", topic="category"))
-    for region in _REGIONS:
-        filename = f"eval-policy-{region.lower()}.md"
-        (_KNOWLEDGE / filename).write_text(
-            _long_body(f"{region} 跨境规则", "申报、配送限制与报价边界", "政策演示快照"),
-            encoding="utf-8",
-        )
-        entries.append(_entry(filename, Path(filename).stem, region=region, topic="policy"))
-    for suffix, focus in (("global-shipping", "通用运费与体积重"), ("battery", "含电池商品限制"), ("material", "材质与过敏限制")):
-        filename = f"eval-policy-{suffix}.md"
-        (_KNOWLEDGE / filename).write_text(
-            _long_body(f"跨境通用规则（{focus}）", focus, "政策演示快照"),
-            encoding="utf-8",
-        )
-        entries.append(_entry(filename, Path(filename).stem, region="GLOBAL", topic="policy"))
+def _document_body(category: EquipmentCategory, facet_name: str, facet_focus: str) -> str:
+    lines = [f"# {category.name}：{facet_name}", "", "## 适用范围与资料边界",
+        f"本文服务于 EquipForge 的{category.scope}选型演示，重点是{facet_focus}。这是合成的演示快照，不对应任何真实厂商、型号、报价或库存，也不能替代现场测试、产品手册、安全评审与工程签字。", "", "## 需求输入",
+        f"处理{category.name}{facet_name}需求时，先记录任务对象、工作节拍、现场空间、环境条件、现有系统、预算上限和验收方式。对于{category.name}{facet_name}中的高精度、高速、稳定等模糊表述，必须追问可测量的阈值及测试条件，再决定是否进入候选比较。", "", "## 核心参数检查"]
+    for index, parameter in enumerate(category.parameters, start=1):
+        scenario = category.scenarios[(index - 1) % len(category.scenarios)]
+        lines += [f"### {index}. {parameter}", f"在{scenario}中执行{category.name}{facet_name}并核对“{parameter}”时，应保存数值、单位、上下限和测量前提。{category.name}{facet_name}不得只依据标题关键词判断满足条件；字段缺失应标为待确认，候选排序需要说明该参数如何影响任务目标。", ""]
+    lines += ["## 兼容性清单"]
+    for index, item in enumerate(category.compatibility, start=1):
+        lines += [f"### C{index}. {item}", f"围绕{category.name}{facet_name}的{item}建立输入端、输出端和约束条件三列表。{category.name}{facet_name}中接口名称一致并不自动代表可互操作，还要确认物理层、信号范围、协议版本、数据格式、时序以及必要附件；不能确认的项目进入联调验证单。", ""]
+    lines += ["## 常见风险与处置"]
+    for index, risk in enumerate(category.risks, start=1):
+        lines += [f"### R{index}. {risk}", f"“{risk}”会使{category.name}{facet_name}产生表面匹配、实际不可用的结果。{category.name}{facet_name}的处置方法是回到任务工况补齐证据，给出验证步骤和不通过时的替代边界；没有测试或字段支持时，不作确定性推荐。", ""]
+    lines += ["## 决策与验收流程", f"{category.name}{facet_name}的第一步是冻结硬约束并排除不满足项；第二步按{facet_focus}比较剩余候选；第三步核对附件、集成和维护成本；第四步输出首选、备选和待确认项；第五步在代表性工况下执行小规模验证，记录参数、现象与通过标准。", "", "## 推荐输出格式", f"EquipForge 应依次展示{category.name}{facet_name}需求摘要、候选参数表、兼容性差异、风险提示、样例预算以及验证计划。{category.name}{facet_name}中的价格仅作为合成比较字段，库存仅作为流程演示字段；证据冲突时以用户提供的最新可核验资料为准。"]
+    return "\n".join(lines) + "\n"
+
+
+def _entry(filename: str, category: EquipmentCategory, facet: str) -> dict[str, str]:
+    return {"document_id": Path(filename).stem, "filename": filename,
+        "source": "EquipForge 离线选型知识快照（合成演示）", "source_type": "synthetic_evaluation_fixture",
+        "published_at": "2026-09-10", "effective_from": "2026-09-10", "effective_to": "2027-09-10",
+        "region": "GLOBAL", "version": "2026.09-equipforge-v1", "topic": "equipment_selection",
+        "category": category.slug, "facet": facet}
+
+
+def build_manifest() -> list[dict[str, str]]:
+    _KNOWLEDGE.mkdir(parents=True, exist_ok=True)
+    documents: dict[str, str] = {}
+    entries: list[dict[str, str]] = []
+    for category in _CATEGORIES:
+        base_filename = f"{category.slug}.md"
+        documents[base_filename] = _document_body(category, "综合指南", "形成从需求澄清到验证验收的完整决策链")
+        entries.append(_entry(base_filename, category, "guide"))
+        for facet_slug, facet_name, facet_focus in _FACETS:
+            filename = f"eval-{category.slug}-{facet_slug}.md"
+            documents[filename] = _document_body(category, facet_name, facet_focus)
+            entries.append(_entry(filename, category, facet_slug))
+    # knowledge/ 是本地合成夹具目录；白名单同步防止旧电商资料被运行时 glob 重新入库。
+    for path in _KNOWLEDGE.glob("*.md"):
+        if path.name not in documents:
+            path.unlink()
+    for filename, body in documents.items():
+        (_KNOWLEDGE / filename).write_text(body, encoding="utf-8")
     return entries
 
 
 def main() -> None:
     entries = build_manifest()
     _MANIFEST.write_text("\n".join(json.dumps(entry, ensure_ascii=False, sort_keys=True) for entry in entries) + "\n", encoding="utf-8")
-    print(f"已生成 {len(entries)} 篇知识文档与 {_MANIFEST}")
+    print(f"已生成 {len(entries)} 篇 EquipForge 知识文档与 {_MANIFEST}")
 
 
 if __name__ == "__main__":

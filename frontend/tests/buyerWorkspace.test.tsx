@@ -68,10 +68,10 @@ it("从真实页面保存个人 Skill，刷新恢复，再通过斜杠菜单发�
   expect(write.headers.Authorization).toBe("Bearer test-token");
   await act(async()=>root.unmount());root=createRoot(host);await mount();
   await click(button("我的 Skill"));expect(host.textContent).toContain("我的周末清单");
-  await click(button("我的选购"));await fill("query","/");
+  await click(button("设备选型"));await fill("query","/");
   const option=host.querySelector('[role="option"]')!;
   expect(option.textContent).toContain("我的周末清单");await click(option);
-  await click(host.querySelector('[aria-label="发送选购需求"]')!);
+  await click(host.querySelector('[aria-label="发送选型需求"]')!);
   const run=requests.find(r=>r.path==="/commerce/ag-ui/run");
   expect(run.body.forwardedProps.selectedSkill).toEqual({id:"personal-test",version:"1",contentHash:"a".repeat(64)});
   expect(run.body.messages[0].content).not.toContain("先问行程与预算");
@@ -89,7 +89,7 @@ it("Skill 编辑携带原版本，冲突保留正文，删除后斜杠菜单不�
   await act(async()=>host.querySelector(".workspace-editor form")!.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true})));
   expect(personal[0].version).toBe("2");
   await click(host.querySelector('[aria-label="删除 Skill：我的周末清单"]')!);await click(button("确认删除"));
-  expect(personal).toEqual([]);await click(button("我的选购"));await fill("query","/");
+  expect(personal).toEqual([]);await click(button("设备选型"));await fill("query","/");
   expect(host.querySelector('[role="option"]')).toBeNull();
 });
 
@@ -101,7 +101,7 @@ it("长期偏好支持添加、精确编辑、删除，并从服务器重新加�
   await act(async()=>host.querySelector(".workspace-editor form")!.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true})));
   expect(preferences).toEqual([{kind:"like",statement:"喜欢蓝色"}]);
   expect(requests.find(r=>r.body?.previous_statement)?.body.previous_statement).toBe("喜欢黑色");
-  await click(button("我的选购"));await click(button("长期偏好"));
+  await click(button("设备选型"));await click(button("长期偏好"));
   expect(host.textContent).toContain("喜欢蓝色");
   await click(host.querySelector('[aria-label="删除偏好：喜欢蓝色"]')!);
   expect(preferences).toEqual([]);

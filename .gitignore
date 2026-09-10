@@ -1,6 +1,8 @@
 .venv/
+.idea/
 __pycache__/
 *.pyc
+*.log
 .env
 .pytest_cache/
 # 运行态数据仍忽略；评测基准商品集必须随代码版本化。

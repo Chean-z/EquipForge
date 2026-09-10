@@ -30,13 +30,13 @@ from app.infrastructure.eventbus import TradeEvent
 from app.application.agents.product_candidate_projection import ProductCandidateProjection
 
 _TOOL_LABELS = {
-    "product_search_tool": "检索商品",
-    "category_insight_tool": "查询选购知识",
+    "product_search_tool": "检索设备",
+    "category_insight_tool": "查询选型知识",
     "web_search_tool": "核实外部资料",
     "task_dispatch": "协调专家任务",
-    "remember_preference_tool": "保存购物偏好",
-    "forget_preference_tool": "更新购物偏好",
-    "create_order_tool": "准备订单意向",
+    "remember_preference_tool": "保存选型偏好",
+    "forget_preference_tool": "更新选型偏好",
+    "create_order_tool": "准备采购意向",
     "query_order_tool": "查询订单",
     "cancel_order_tool": "准备取消确认",
     "load_agent_skill_tool": "读取选购方案",

@@ -20,7 +20,7 @@ from app.infrastructure.vector.index_bootstrap import bootstrap_product_index
 from app.infrastructure.vector.qdrant_product_index import QdrantProductIndex
 
 # 特征轴词表：文本命中即该维置 1，余弦相似度即可反映关键词重合度
-_FEATURE_TERMS = ("露营灯", "登山杖", "毛巾", "睡袋", "行李箱", "耳机", "充电器", "三件套", "背包", "茶具")
+_FEATURE_TERMS = ("工业相机", "镜头光源", "工业传感器", "边缘控制器", "运动控制", "通信采集", "全局快门", "Modbus TCP", "EtherCAT", "GV-500")
 
 
 class AxisEmbeddingClient(EmbeddingClient):
@@ -176,77 +176,84 @@ class TestTwoStageRecall:
         assert [hit["product_id"] for hit in result["hits"]] == ["P-METAL"]
         assert result["filtered_out"][0]["reason"] == "material_excluded"
 
-    async def test_embedding_recall_ranks_camping_light_first(self, indexed):
+    async def test_embedding_recall_ranks_global_shutter_camera_first(self, indexed):
         repo, embedder, index = indexed
         usecase = CatalogSearchUseCase(repo, embedder=embedder, vector_index=index)
-        result = await usecase.execute(ProductSearchSpec(normalized_query="露营灯 抗造"))
+        result = await usecase.execute(ProductSearchSpec(normalized_query="ForgeVision GV-500 全局快门工业相机"))
         assert result["recall_strategy"] == "embedding_only"
         assert result["rerank_applied"] is False
-        assert result["hits"][0]["product_id"] == "P1008", "露营灯应排第一"
+        assert result["hits"][0]["product_id"] == "P1001", "验收工业相机应排第一"
 
     async def test_rerank_applied_changes_order(self, indexed):
         repo, embedder, index = indexed
         usecase = CatalogSearchUseCase(
             repo, embedder=embedder, vector_index=index, reranker=ReverseReranker(),
         )
-        result = await usecase.execute(ProductSearchSpec(normalized_query="露营灯"))
+        result = await usecase.execute(ProductSearchSpec(normalized_query="ForgeVision GV-500 全局快门工业相机"))
         assert result["recall_strategy"] == "embedding_rerank"
         assert result["rerank_applied"] is True
-        # 反转桩生效：露营灯不再是第一位
-        assert result["hits"][0]["product_id"] != "P1008"
+        # 反转桩生效：验收工业相机不再是第一位
+        assert result["hits"][0]["product_id"] != "P1001"
 
     async def test_degrade_to_keyword_when_embedding_broken(self, indexed):
         repo, _, index = indexed
         usecase = CatalogSearchUseCase(repo, embedder=BrokenEmbeddingClient(), vector_index=index)
-        result = await usecase.execute(ProductSearchSpec(normalized_query="露营灯 抗造"))
+        result = await usecase.execute(ProductSearchSpec(normalized_query="ForgeVision GV-500 全局快门工业相机"))
         assert result["recall_strategy"] == "keyword_2gram"
         assert result["hits"], "关键词降级仍应有召回"
-        assert result["hits"][0]["product_id"] == "P1008"
+        assert result["hits"][0]["product_id"] == "P1001"
 
     async def test_price_cap_hard_filter(self, indexed):
         repo, embedder, index = indexed
         usecase = CatalogSearchUseCase(repo, embedder=embedder, vector_index=index)
         result = await usecase.execute(
-            ProductSearchSpec(normalized_query="行李箱 登机", price_max_major=500.0),
+            ProductSearchSpec(normalized_query="ForgeVision GV-500 全局快门工业相机", price_max_major=100.0),
         )
-        # P1002 行李箱 899 CNY 超预算，必须被结构化过滤
-        assert all(hit["product_id"] != "P1002" for hit in result["hits"])
+        # P1001 参考价 189 CNY 超预算，必须被结构化过滤
+        assert all(hit["product_id"] != "P1001" for hit in result["hits"])
 
     async def test_over_price_cap_candidate_reported_in_filtered_out(self, indexed):
-        """超预算候选必须如实回传，否则模型会把"有但超预算"答成"没有这个商品"
+        """超预算候选必须如实回传，否则模型会把“有但超预算”答成“没有这个设备”
         （三期评测 long-context-memory 曾暴露此缺陷）。"""
         repo, embedder, index = indexed
         usecase = CatalogSearchUseCase(repo, embedder=embedder, vector_index=index)
         result = await usecase.execute(
-            ProductSearchSpec(normalized_query="行李箱 登机", price_max_major=500.0),
+            ProductSearchSpec(normalized_query="ForgeVision GV-500 全局快门工业相机", price_max_major=100.0),
         )
         rejected = {item["product_id"]: item for item in result["filtered_out"]}
-        assert "P1002" in rejected, "被价格上限挡掉的候选必须在 filtered_out 里可见"
-        assert rejected["P1002"]["reason"] == "over_price_cap"
-        # 价格按目标币种给出，模型才能直接告知买家超了多少
-        assert rejected["P1002"]["currency"] == "CNY"
-        assert rejected["P1002"]["price_major"] > 500.0
+        assert "P1001" in rejected, "被价格上限挡掉的候选必须在 filtered_out 里可见"
+        assert rejected["P1001"]["reason"] == "over_price_cap"
+        # 价格按目标币种给出，模型才能直接告知用户超了多少
+        assert rejected["P1001"]["currency"] == "CNY"
+        assert rejected["P1001"]["price_major"] > 100.0
 
     async def test_unshippable_candidate_reported_in_filtered_out(self, indexed):
         repo, embedder, index = indexed
         usecase = CatalogSearchUseCase(repo, embedder=embedder, vector_index=index)
         result = await usecase.execute(
-            ProductSearchSpec(normalized_query="露营灯 抗造", ship_to="BR"),
+            ProductSearchSpec(normalized_query="ForgeVision GV-500 全局快门工业相机", ship_to="BR"),
         )
         reasons = {item["reason"] for item in result["filtered_out"]}
-        assert reasons == {"ship_to_unavailable"}, "不可达目的国应标注为 ship_to_unavailable"
+        assert "ship_to_unavailable" in reasons, "不可达目的国候选应标注为 ship_to_unavailable"
 
-    async def test_no_filtered_out_key_without_hard_constraints(self, indexed):
-        repo, embedder, index = indexed
-        usecase = CatalogSearchUseCase(repo, embedder=embedder, vector_index=index)
-        result = await usecase.execute(ProductSearchSpec(normalized_query="露营灯"))
+    async def test_no_filtered_out_key_without_hard_constraints(self):
+        repo = InMemoryProductRepository(
+            [
+                Product(
+                    product_id="P-OK", title="全局快门工业相机", brand="A", category="工业相机", origin_country="CN",
+                    description="全局快门 GigE Vision", ships_to=["CN"],
+                    skus=[Sku("P-OK-S1", "标准", Money.from_major_units(189, "CNY"), 5)],
+                ),
+            ],
+        )
+        result = await CatalogSearchUseCase(repo).execute(ProductSearchSpec(normalized_query="全局快门工业相机"))
         assert "filtered_out" not in result, "无硬约束时不应污染工具返回"
 
     async def test_landed_price_inlined_with_ship_to(self, indexed):
         repo, embedder, index = indexed
         usecase = CatalogSearchUseCase(repo, embedder=embedder, vector_index=index)
         result = await usecase.execute(
-            ProductSearchSpec(normalized_query="露营灯", ship_to="US", target_currency="USD"),
+            ProductSearchSpec(normalized_query="通信采集", ship_to="US", target_currency="USD"),
         )
         top = result["hits"][0]
         assert "landed_price" in top
@@ -260,7 +267,7 @@ class TestTwoStageRecall:
     async def test_no_landed_price_without_ship_to(self, indexed):
         repo, embedder, index = indexed
         usecase = CatalogSearchUseCase(repo, embedder=embedder, vector_index=index)
-        result = await usecase.execute(ProductSearchSpec(normalized_query="露营灯"))
+        result = await usecase.execute(ProductSearchSpec(normalized_query="ForgeVision GV-500 全局快门工业相机"))
         assert "landed_price" not in result["hits"][0]
 
     async def test_tool_event_carries_hits_for_frontend(self, indexed):
@@ -282,7 +289,7 @@ class TestTwoStageRecall:
             ),
         )
         try:
-            response = await tool(normalized_query="露营灯", ship_to="US", target_currency="USD")
+            response = await tool(normalized_query="通信采集", ship_to="US", target_currency="USD")
         finally:
             ShoppingContext.reset(token)
 
@@ -290,7 +297,7 @@ class TestTwoStageRecall:
         result_event = queue.get_nowait()
         assert result_event.type == "tool.result"
         hits = result_event.payload["hits"]
-        assert hits and hits[0]["product_id"] == "P1008"
+        assert hits and all(hit["category"] == "通信采集" for hit in hits)
         assert hits[0]["landed_price"]["currency"] == "USD"
         body = json.loads(response.content[0].text)
         assert body.get("filtered_out"), "测试前提：本次检索应有被硬约束挡掉的候选"

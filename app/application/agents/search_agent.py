@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """SearchAgent
 
-跨境商品检索专家。基于 AgentScope 2.0 Agent：
+智能装备检索专家。基于 AgentScope 2.0 Agent：
     工具集：product_search_tool（embedding+rerank 二阶段召回）
-          category_insight_tool（品类洞察 RAG，选购常识）
-          web_search_tool（可选，跨境政策兜底）
+          category_insight_tool（设备选型 RAG，参数与兼容性知识）
+          web_search_tool（可选，标准与厂商公开资料兜底）
 
 对外通过 task_dispatch 工具被 MainAgent 调度（SubAgent as Tool 模式）。
 每次调度新建独立实例：2.0 的对话上下文内建于 AgentState，独立实例天然上下文隔离。

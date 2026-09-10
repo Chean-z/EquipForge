@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""AG-UI 合同测试：原生事件夹具替代付费模型，商品查询仍走真实 UseCase。"""
+"""AG-UI 合同测试：原生事件夹具替代付费模型，设备查询仍走真实 UseCase。"""
 from __future__ import annotations
 
 import asyncio
@@ -41,8 +41,8 @@ def request_data(**changes):
         "threadId": "session-test", "runId": "run-test", "state": {},
         "messages": [
             {"id": "old-user", "role": "user", "content": "你好"},
-            {"id": "old-assistant", "role": "assistant", "content": "需要什么商品？"},
-            {"id": "new-user", "role": "user", "content": "旅行三件套"},
+            {"id": "old-assistant", "role": "assistant", "content": "需要选择什么设备？"},
+            {"id": "new-user", "role": "user", "content": "全局快门工业相机"},
         ],
         "tools": [], "context": [], "forwardedProps": {"buyerId": "buyer-test"},
     }
@@ -72,11 +72,11 @@ class Sessions:
 
 
 class ScriptedAgent:
-    """脚本只决定模型会发哪些调用，商品与价格不使用测试伪造数据。"""
+    """脚本只决定模型会发哪些调用，设备与价格不使用测试伪造数据。"""
 
     name = "CatalogTestAgent"
 
-    def __init__(self, bus, *, fail=False, block=False, swallow_cancel=False, query="旅行三件套"):
+    def __init__(self, bus, *, fail=False, block=False, swallow_cancel=False, query="全局快门工业相机"):
         self.bus = bus
         self.fail = fail
         self.block = block
@@ -99,7 +99,7 @@ class ScriptedAgent:
             self.started.set()
             yield ReplyStartEvent(session_id="session-test", reply_id="reply-1", name=self.name)
             yield TextBlockStartEvent(reply_id="reply-1", block_id="text-1")
-            yield TextBlockDeltaEvent(reply_id="reply-1", block_id="text-1", delta="正在查找商品。")
+            yield TextBlockDeltaEvent(reply_id="reply-1", block_id="text-1", delta="正在查找设备。")
             if self.block:
                 await self.release.wait()
             if self.fail:
@@ -114,7 +114,7 @@ class ScriptedAgent:
             yield ToolResultTextDeltaEvent(reply_id="reply-1", tool_call_id="call-1", delta=result.content[0].text)
             yield ToolResultEndEvent(reply_id="reply-1", tool_call_id="call-1", state=result.state)
             yield ReplyEndEvent(session_id="session-test", reply_id="reply-1")
-            yield AssistantMsg(self.name, "这是根据商品库找到的结果。")
+            yield AssistantMsg(self.name, "这是根据设备目录找到的结果。")
         except asyncio.CancelledError:
             if not self.swallow_cancel:
                 raise
@@ -157,7 +157,7 @@ async def test_real_search_projects_cards_and_preserves_message_history():
     assert final_state["progress"][0]["status"] == "completed"
     final_messages = next(event["messages"] for event in events if event["type"] == "MESSAGES_SNAPSHOT")
     assert [message["id"] for message in final_messages[:3]] == ["old-user", "old-assistant", "new-user"]
-    assert final_messages[-1]["content"] == "这是根据商品库找到的结果。"
+    assert final_messages[-1]["content"] == "这是根据设备目录找到的结果。"
     assert sessions.persisted == 1
 
 

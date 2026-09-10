@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """product_search_tool
 
-商品检索工具：结构化检索入参 → CatalogSearchUseCase → 商品卡 JSON。
+设备检索工具：结构化检索入参 → CatalogSearchUseCase → 设备卡 JSON。
 MainAgent 单干与 SearchAgent 派发两条路径共用同一工具实例。
 工厂模式注入 UseCase 与 EventBus，模型看到的只是工具入参与返回值结构。
 
@@ -25,25 +25,21 @@ from app.infrastructure.persistence.context_evidence import product_decision_vie
 
 
 _KNOWN_CATEGORIES = (
-    "旅行装备",
-    "户外运动",
-    "数码配件",
-    "家居生活",
-    "美妆个护",
-    "厨房餐饮",
-    "办公学习",
-    "母婴宠物",
+    "工业相机",
+    "镜头光源",
+    "工业传感器",
+    "边缘控制器",
+    "运动控制",
+    "通信采集",
 )
 
 _CATEGORY_ALIASES = {
-    "旅行装备": ("行李箱", "旅行收纳", "颈枕", "眼罩", "旅行包"),
-    "户外运动": ("露营灯", "登山杖", "露营凳", "户外"),
-    "数码配件": ("耳机", "耳塞", "充电器", "扩展坞", "三脚架", "数码"),
-    "家居生活": ("家居", "收纳盒", "收纳架", "茶具", "香器"),
-    "美妆个护": ("美妆", "个护", "护肤", "化妆"),
-    "厨房餐饮": ("厨房", "餐具", "餐盒", "厨具"),
-    "办公学习": ("办公", "学习", "文具", "台灯"),
-    "母婴宠物": ("母婴", "宠物", "婴儿"),
+    "工业相机": ("机器视觉相机", "全局快门", "线阵相机", "面阵相机", "视觉定位"),
+    "镜头光源": ("工业镜头", "机器视觉镜头", "环形光源", "条形光源", "背光源"),
+    "工业传感器": ("视觉传感器", "力传感器", "位移传感器", "温度传感器", "接近传感器"),
+    "边缘控制器": ("边缘计算", "工业网关", "PLC", "数字量输入", "边缘控制"),
+    "运动控制": ("伺服驱动", "运动控制器", "EtherCAT", "脉冲控制", "多轴控制"),
+    "通信采集": ("数据采集", "采集模块", "通信模块", "Modbus", "CANopen", "RS485"),
 }
 
 
@@ -70,27 +66,27 @@ def build_product_search_tool(usecase: CatalogSearchUseCase, bus: TradeEventBus,
         excluded_material_tags: list[str] | None = None,
         required_material_tags: list[str] | None = None,
     ) -> ToolChunk:
-        """检索跨境商品库（embedding+rerank 二阶段召回），返回 Top-K 商品卡 JSON。
-        传入 ship_to 时商品卡自动内联 landed_price 到手价明细（小计+运费+关税，统一折算 target_currency），
+        """检索智能装备目录（embedding+rerank 二阶段召回），返回 Top-K 设备卡 JSON。
+        传入 ship_to 时设备卡自动内联 landed_price 供货成本明细（设备小计+运输+税费，统一折算 target_currency），
         无需另行计算价格。
 
         Args:
             normalized_query (`str`):
-                标准化检索词，保留品类词与关键属性词（如"旅行三件套 抗造 轻便 无塑料"）。
+                标准化检索词，保留设备品类、应用场景与关键参数（如“流水线缺陷检测 全局快门 GigE Vision”）。
             category (`str | None`):
-                品类槽位，可选，如"旅行装备"、"数码配件"。
+                品类槽位，可选，如“工业相机”“边缘控制器”。
             ship_to (`str | None`):
-                收货国家二位码，可选，如 "CN"、"US"；传入后过滤不可送达商品并内联到手价。
+                供货国家或地区二位码，可选，如 "CN"、"US"；传入后过滤不可供货设备并内联成本。
             top_k (`int`):
                 返回候选数量，默认 5。
             price_max_major (`float | None`):
-                价格上限（target_currency 主单位），买家有预算硬约束时必传，由检索链路结构化过滤。
+                价格上限（target_currency 主单位），用户有预算硬约束时必传，由检索链路结构化过滤。
             target_currency (`str`):
                 价格口径币种，默认 "CNY"。
             excluded_material_tags (`list[str] | None`):
-                材质黑名单，如买家明确不要塑料时传 ["合成聚合物"]。
+                设备标签黑名单，仅在用户明确排除目录中的某个标签时传入。
             required_material_tags (`list[str] | None`):
-                材质白名单，如必须是金属时传 ["金属"]。
+                设备标签白名单，如必须支持某个已结构化登记的接口标签时传入。
         """
         # 模型有时会把数字参数当字符串传（实测 qwen3-max 传 "300"），
         # schema 层放宽为接受数字字符串，这里统一强转后再进检索链路。

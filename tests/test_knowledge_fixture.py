@@ -16,9 +16,15 @@ _ROOT = Path(__file__).resolve().parents[1]
 def test_knowledge_fixture_has_versioned_metadata_and_required_document_count():
     manifest = load_knowledge_manifest(_ROOT / "knowledge")
 
-    assert len(manifest) >= 40
+    assert len(manifest) == 42
     assert validate_knowledge_manifest(_ROOT / "knowledge", manifest) == []
-    assert {entry["region"] for entry in manifest} >= {"GLOBAL", "US", "EU", "JP", "SG", "CN"}
+    assert {entry["region"] for entry in manifest} == {"GLOBAL"}
+    assert {entry["source_type"] for entry in manifest} == {"synthetic_evaluation_fixture"}
+    assert {entry["category"] for entry in manifest} == {
+        "industrial-camera", "lens-lighting", "industrial-sensor",
+        "edge-controller", "motion-control", "communication-acquisition",
+    }
+    assert not any("travel" in entry["document_id"] or "policy" in entry["document_id"] for entry in manifest)
 
 
 @pytest.mark.asyncio
@@ -32,11 +38,12 @@ def test_runtime_knowledge_loader_exposes_manifest_metadata():
     from app.infrastructure.rag.category_knowledge import load_knowledge_metadata
 
     metadata = load_knowledge_metadata(_ROOT / "knowledge")
-    policy = metadata["eval-policy-us"]
+    guide = metadata["eval-industrial-camera-risks"]
 
-    assert policy["region"] == "US"
-    assert policy["source"]
-    assert policy["effective_to"] == "2026-12-31"
+    assert guide["region"] == "GLOBAL"
+    assert guide["source"] == "eval-industrial-camera-risks.md"
+    assert guide["source_type"] == "synthetic_evaluation_fixture"
+    assert guide["effective_to"] == "2027-09-10"
 
 
 def test_knowledge_quality_rejects_repeated_substantive_paragraphs(tmp_path):

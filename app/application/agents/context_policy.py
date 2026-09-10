@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """context_policy
 
-Context 工程策略：把 2.0 内置的上下文压缩配置成跨境购物场景的口径
+Context 工程策略：把 2.0 内置的上下文压缩配置成智能装备选型场景的口径
 （即教程 Cache Breakpoint 章节要解决的问题——长对话不爆 token 且关键事实不丢）。
 
 压缩触发：上下文占用达 context_size * trigger_ratio 时，Agent 自动把早期消息
@@ -51,7 +51,7 @@ _SUMMARY_TEMPLATE = """<system-info>以下是历史工作摘要；以本轮交�
 
 
 def build_context_config(context_size: int, tool_result_limit: int) -> ContextConfig:
-    """构造 Globex 的上下文压缩策略。
+    """构造 EquipForge 的上下文压缩策略。
 
     Args:
         context_size (`int`):

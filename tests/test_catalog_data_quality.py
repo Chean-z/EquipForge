@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""商品评测数据的字段和分布门禁。"""
+"""EquipForge 设备评测数据的字段和分布门禁。"""
 from __future__ import annotations
 
 from app.domain.catalog.money import Money
@@ -19,11 +19,11 @@ def test_catalog_fixture_passes_field_and_distribution_validation():
 def test_catalog_validator_reports_duplicate_sku_and_missing_evaluation_metadata():
     products = [
         Product(
-            product_id="P-A", title="A", brand="A", category="旅行装备", origin_country="CN", description="A",
+            product_id="P-A", title="A", brand="A", category="工业相机", origin_country="CN", description="A",
             ships_to=["CN"], skus=[Sku("SAME", "标准", Money.from_major_units(1, "CNY"), 1)],
         ),
         Product(
-            product_id="P-B", title="B", brand="B", category="旅行装备", origin_country="CN", description="B",
+            product_id="P-B", title="B", brand="B", category="工业相机", origin_country="CN", description="B",
             ships_to=["CN"], skus=[Sku("SAME", "标准", Money.from_major_units(1, "CNY"), 1)],
         ),
     ]

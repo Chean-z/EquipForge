@@ -175,7 +175,7 @@ describe("通过官方 SDK 消费真实 AG-UI 协议", () => {
     await client.submit("背包");
     expect(client.getSnapshot()).toMatchObject({
       status: "error",
-      error: "选购服务暂时不可用，请稍后重试。",
+      error: "选型服务暂时不可用，请稍后重试。",
     });
   });
 

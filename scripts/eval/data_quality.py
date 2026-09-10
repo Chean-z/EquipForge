@@ -17,6 +17,9 @@ _REQUIRED_PRODUCT_FIELDS = (
     "updated_at",
 )
 _REQUIRED_CURRENCIES = {"CNY", "USD", "EUR", "JPY", "SGD"}
+_REQUIRED_EQUIPMENT_CATEGORIES = {
+    "工业相机", "镜头光源", "工业传感器", "边缘控制器", "运动控制", "通信采集",
+}
 
 
 def validate_catalog_raw_records(records: list[dict[str, Any]]) -> list[str]:
@@ -84,8 +87,9 @@ def validate_catalog_distribution(products: Iterable[Product]) -> list[str]:
     if not 700 <= len(skus) <= 900:
         problems.append(f"SKU 数应在 700–900，实际 {len(skus)}")
     category_counts = Counter(product.category for product in products)
-    if len(category_counts) < 8:
-        problems.append(f"一级品类不足：{len(category_counts)} < 8")
+    missing_categories = _REQUIRED_EQUIPMENT_CATEGORIES - set(category_counts)
+    if missing_categories:
+        problems.append("缺少 EquipForge 必需品类：" + ",".join(sorted(missing_categories)))
     for category, count in category_counts.items():
         if count < 40:
             problems.append(f"品类 {category} SPU 不足：{count} < 40")

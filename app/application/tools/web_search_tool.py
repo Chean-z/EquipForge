@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """web_search_tool
 
-Web 实时资料兜底工具（Tavily HTTP API）：跨境政策、关税规则、清关限制、
-商品评测趋势等模型知识覆盖不到的问题走这里。
+Web 实时资料兜底工具（Tavily HTTP API）：设备标准、接口规范、厂商公开资料和
+行业技术趋势等模型知识覆盖不到的问题走这里。
 
 TAVILY_API_KEY 未配置时组装根不注册本工具（Agent 看不到它）。
 
@@ -25,11 +25,11 @@ def build_web_search_tool(settings: Settings, bus: TradeEventBus):
     api_key = settings.tavily_api_key
 
     async def web_search_tool(query: str, max_results: int = 5) -> ToolChunk:
-        """联网搜索外部实时资料（跨境政策 / 关税规则 / 清关限制 / 评测趋势）。
+        """联网搜索外部实时资料（设备标准 / 接口规范 / 厂商公开资料 / 技术趋势）。
 
         Args:
             query (`str`):
-                搜索关键词，如 "美国 800 美元免税额度 最新政策"。
+                搜索关键词，如 "GigE Vision 标准 官方规范"。
             max_results (`int`):
                 返回结果条数，默认 5。
         """

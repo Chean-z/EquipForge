@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""准生产演示商品集的规模与分布契约。"""
+"""EquipForge 合成设备目录的规模与分布契约。"""
 from __future__ import annotations
 
 from collections import Counter
@@ -16,7 +16,9 @@ def test_catalog_fixture_has_required_scale_and_coverage():
 
     assert len(products) >= 500
     assert 700 <= len(skus) <= 900
-    assert len({product.category for product in products}) >= 8
+    assert {product.category for product in products} == {
+        "工业相机", "镜头光源", "工业传感器", "边缘控制器", "运动控制", "通信采集",
+    }
     assert sum(len(product.skus) >= 2 for product in products) / len(products) >= 0.35
     assert {sku.price.currency for sku in skus} >= {"CNY", "USD", "EUR", "JPY", "SGD"}
 
@@ -56,3 +58,12 @@ def test_versioned_catalog_has_hard_negative_and_price_band_coverage():
 
     assert validate_catalog_raw_records(records) == []
     assert sum("hard_negative" in record.get("evaluation_tags", []) for record in records) / len(records) >= 0.15
+
+
+def test_catalog_fixture_contains_acceptance_query_positive_examples():
+    products = build_seed_products()
+    searchable = {product.product_id: product.searchable_text() for product in products}
+
+    assert "全局快门" in searchable["P1001"] and "GigE Vision" in searchable["P1001"]
+    assert any("Modbus TCP" in text and "8 路 DI" in text for text in searchable.values())
+    assert any("机械臂" in text and "视觉定位" in text for text in searchable.values())

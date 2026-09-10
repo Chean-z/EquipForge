@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""usecase 层单测：商品召回 + 订单闭环（不依赖 LLM）。"""
+"""usecase 层单测：设备召回 + 采购意向闭环（不依赖 LLM）。"""
 import pytest
 
 from app.application.usecases.catalog_search import CatalogSearchUseCase
@@ -35,26 +35,25 @@ def _address() -> Address:
 
 
 class TestCatalogSearch:
-    async def test_recall_travel_set(self, product_repo):
+    async def test_recall_global_shutter_camera(self, product_repo):
         usecase = CatalogSearchUseCase(product_repo)
         result = await usecase.execute(
             ProductSearchSpec(
-                normalized_query="旅行三件套 抗造 轻便 无塑料",
-                excluded_material_tags=["合成聚合物"],
+                normalized_query="流水线缺陷检测 全局快门 GigE Vision 工业相机",
             ),
         )
-        assert result["hits"], "旅行三件套应能召回"
-        assert result["hits"][0]["product_id"] == "P2120", "无塑料约束应优先命中天然材质三件套"
+        assert result["hits"], "全局快门工业相机应能召回"
+        assert result["hits"][0]["product_id"] == "P1001", "精确参数应优先命中验收相机"
 
     async def test_ship_to_filter(self, product_repo):
         usecase = CatalogSearchUseCase(product_repo)
-        result = await usecase.execute(ProductSearchSpec(normalized_query="旅行茶具", ship_to="US"))
-        # P1006 只发 CN/JP，指定 ship_to=US 后不应出现
-        assert all(hit["product_id"] != "P1006" for hit in result["hits"])
+        result = await usecase.execute(ProductSearchSpec(normalized_query="OptiSpark EF-001 镜头光源", ship_to="CN"))
+        # P1002 只供 US，指定 ship_to=CN 后不应出现
+        assert all(hit["product_id"] != "P1002" for hit in result["hits"])
 
     async def test_top_k_limit(self, product_repo):
         usecase = CatalogSearchUseCase(product_repo)
-        result = await usecase.execute(ProductSearchSpec(normalized_query="旅行", top_k=2))
+        result = await usecase.execute(ProductSearchSpec(normalized_query="工业相机", top_k=2))
         assert len(result["hits"]) <= 2
 
     async def test_no_hit_returns_empty(self, product_repo):

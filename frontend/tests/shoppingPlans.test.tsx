@@ -14,7 +14,7 @@ const sse = (events: unknown[]) => new Response(events.map((event) => `data: ${J
 it("空库与读取失败分开显示，不生成演示方案或使用成功", () => {
   const props = { skills: [], status: "ready" as const, error: null, selected: null, onSelect: () => {}, onRefresh: () => {} };
   const empty = renderToStaticMarkup(<ShoppingPlans {...props} />);
-  expect(empty).toContain("选购方案筹备中，可直接描述需求");
+  expect(empty).toContain("选型方案筹备中，可直接描述需求");
   expect(empty).not.toContain("已读取");
   expect(empty).not.toContain("plan-card ");
   const error = renderToStaticMarkup(<ShoppingPlans {...props} status="error" error="方案服务暂时不可用" />);
@@ -205,6 +205,6 @@ it("同一版本预读和模型读取的成功提示合并，但失败状态仍�
     id: skill.id, version: skill.version, title: skill.title, contentHash: skill.content_hash };
   const markup = renderToStaticMarkup(<SkillRunStatus running={false} usages={[used, {...used, toolCallId: "tool"},
     {...used, toolCallId: "failed", status: "error"}]} />);
-  expect(markup.match(/已读取选购方案/g)).toHaveLength(1);
-  expect(markup).toContain("选购方案未能读取");
+  expect(markup.match(/已读取选型方案/g)).toHaveLength(1);
+  expect(markup).toContain("选型方案未能读取");
 });

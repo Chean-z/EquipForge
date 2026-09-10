@@ -15,19 +15,19 @@ interface Props {
 }
 
 export default function ShoppingPlans({ skills, status, error, selected, disabled, compact, onSelect, onRefresh }: Props) {
-  return <section className={`shopping-plans ${compact ? "shopping-plans--compact" : ""}`} aria-label="选购方案">
+  return <section className={`shopping-plans ${compact ? "shopping-plans--compact" : ""}`} aria-label="选型方案">
     <div className="shopping-plans-heading">
-      <div><span className="plan-eyebrow"><Icon name="leaf" />从场景出发</span><h2>选购方案</h2></div>
+      <div><span className="plan-eyebrow"><Icon name="leaf" />从工况出发</span><h2>选型方案</h2></div>
       <button type="button" className="plan-refresh" onClick={onRefresh} disabled={status === "loading"}>刷新方案</button>
     </div>
     <p className="plan-introduction">选一个场景，再补充你的预算与偏好。直接描述需求，也会自动匹配。</p>
-    {status === "loading" ? <p className="plan-empty" role="status">正在查看可用的选购方案…</p>
-      : status === "error" ? <p className="plan-empty plan-load-error" role="status">{error || "选购方案暂时无法加载，仍可直接描述需求。"}</p>
-      : skills.length === 0 ? <p className="plan-empty" role="status"><Icon name="leaf" />选购方案筹备中，可直接描述需求</p>
+    {status === "loading" ? <p className="plan-empty" role="status">正在查看可用的选型方案…</p>
+      : status === "error" ? <p className="plan-empty plan-load-error" role="status">{error || "选型方案暂时无法加载，仍可直接描述需求。"}</p>
+      : skills.length === 0 ? <p className="plan-empty" role="status"><Icon name="leaf" />选型方案筹备中，可直接描述需求</p>
       : <div className="plan-grid">{skills.map((skill) => {
         const chosen = selected?.id === skill.id && selected.version === skill.version && selected.content_hash === skill.content_hash;
         return <button type="button" className={`plan-card ${chosen ? "is-selected" : ""}`} key={`${skill.id}@${skill.version}`}
-          aria-label={`选择选购方案：${skill.title}`} aria-pressed={chosen} disabled={disabled} onClick={() => onSelect(skill)}>
+          aria-label={`选择选型方案：${skill.title}`} aria-pressed={chosen} disabled={disabled} onClick={() => onSelect(skill)}>
           <span className="plan-card-top"><strong>{skill.title}</strong><span className="plan-version">{skill.version}</span></span>
           <span className="plan-description">{skill.description || "选好方案后，说说这次的实际需求。"}</span>
           <span className="plan-card-action">{chosen ? "已选择" : "选择方案"}<Icon name={chosen ? "check" : "arrow"} /></span>
@@ -50,7 +50,7 @@ export function SkillRunStatus({ usages, running }: { usages: SkillUsage[]; runn
     {visible.map((usage) => <p key={usage.toolCallId} className={`skill-run-item skill-run-item--${usage.status}`}>
       <Icon name={usage.status === "used" ? "check" : usage.status === "reading" && running ? "clock" : "info"} />
       <span>{usage.status === "reading" && !running
-        ? `方案读取未完成：${usage.title || "选购方案"}${usage.version ? ` · ${usage.version}` : ""}`
+        ? `方案读取未完成：${usage.title || "选型方案"}${usage.version ? ` · ${usage.version}` : ""}`
         : skillUsageLabel(usage)}</span>
     </p>)}
   </div>;

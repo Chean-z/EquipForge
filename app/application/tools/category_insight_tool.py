@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """category_insight_tool
 
-品类洞察工具（RAG）：回答"这个品类当前热卖什么、看哪些属性、价格区间、有什么坑"
-这类选购常识问题，与 product_search_tool（出具体商品清单）分工明确。
+设备选型知识工具（RAG）：回答“某类设备适用什么场景、看哪些参数、价格区间、兼容风险”
+这类选型问题，与 product_search_tool（出具体设备清单）分工明确。
 
 注意：本模块不能用 `from __future__ import annotations`（AgentScope schema 生成依赖运行时注解）。
 """
@@ -40,14 +40,14 @@ def build_category_insight_tool(
     fallback_knowledge_dir: Path | None = None,
 ):
     async def category_insight_tool(question: str, top_k: int = 3) -> ToolChunk:
-        """查询品类洞察知识库：热卖款型、关键属性判断口径、价格区间、避坑点、跨境通则。
+        """查询设备选型知识库：适用场景、关键参数、兼容性、价格带和常见风险。
 
-        适用于"这个品类怎么挑""现在流行什么""多少钱算合理""有什么坑"这类选购常识问题；
-        需要具体商品清单与价格时用 product_search_tool。
+        适用于“这个设备怎么选”“参数怎么看”“多少钱合理”“是否兼容”这类选型问题；
+        需要具体设备清单与参考价格时用 product_search_tool。
 
         Args:
             question (`str`):
-                自然语言问题，建议带上品类词，如"旅行装备怎么挑材质"、"美国免税额度多少"。
+                自然语言问题，建议带上品类词，如“工业相机如何选择快门方式”“边缘控制器接口怎么选”。
             top_k (`int`):
                 返回知识片段数量，默认 3。
         """

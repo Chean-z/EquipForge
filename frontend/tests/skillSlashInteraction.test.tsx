@@ -67,7 +67,7 @@ describe("真实页面的斜线选购方案交互与官方SDK边界", () => {
     expect(query().value).toBe("请按所选方案帮助我，先确认还缺少哪些必要信息。");
     expect(query().value).not.toContain("比较");
     expect(host.textContent).toContain("已选择 · 周末轻装出游");
-    expect(host.textContent).not.toContain("已读取选购方案");
+    expect(host.textContent).not.toContain("已读取选型方案");
   });
 
   it("光标词首唤起、上下键循环、Enter仅选择，发送才携带结构化方案并显示真实读取", async () => {
@@ -82,12 +82,12 @@ describe("真实页面的斜线选购方案交互与官方SDK边界", () => {
     expect(requests).toHaveLength(0);
     expect(query().value).toBe("预算300");
     expect(host.textContent).toContain("已选择 · 通勤声音方案");
-    expect(host.textContent).not.toContain("已读取选购方案");
+    expect(host.textContent).not.toContain("已读取选型方案");
     await key("Enter");
     expect(requests).toHaveLength(1);
     expect(requests[0].forwardedProps.selectedSkill).toEqual({ id: "daily-audio", version: "v2", contentHash: "b".repeat(64) });
     expect(requests[0].messages.at(-1).content).toBe("预算300");
-    expect(host.textContent).toContain("已读取选购方案：通勤声音方案 · v2");
+    expect(host.textContent).toContain("已读取选型方案：通勤声音方案 · v2");
     expect(host.textContent).toContain("服务端已读取指定版本");
     expect(host.textContent).not.toContain("工具成功返回");
     await type("再比较一款背包"); await key("Enter");
@@ -134,10 +134,10 @@ describe("真实页面的斜线选购方案交互与官方SDK边界", () => {
 
   it("真实空库、无匹配和加载失败各自呈现，菜单Enter不会误发斜线", async () => {
     catalog = []; await mount(); await type("/");
-    expect(host.querySelector('.slash-skill-menu')?.textContent).toContain("选购方案筹备中，可直接描述需求");
+    expect(host.querySelector('.slash-skill-menu')?.textContent).toContain("选型方案筹备中，可直接描述需求");
     expect(options()).toHaveLength(0);
     await key("Enter"); expect(requests).toHaveLength(0);
-    expect(host.querySelector<HTMLButtonElement>('[aria-label="发送选购需求"]')!.disabled).toBe(true);
+    expect(host.querySelector<HTMLButtonElement>('[aria-label="发送选型需求"]')!.disabled).toBe(true);
     catalog = plans;
     await click(host.querySelector('.slash-skill-heading button')!);
     await type("/不存在");
@@ -152,7 +152,7 @@ describe("真实页面的斜线选购方案交互与官方SDK边界", () => {
     clock = originalNow();
     catalog = [{ ...plans[0], expires_at: new Date(clock + 1000).toISOString() }];
     await mount(); await type("预算300，寄到中国");
-    await click(host.querySelector('[aria-label="选择选购方案：周末轻装出游"]')!);
+    await click(host.querySelector('[aria-label="选择选型方案：周末轻装出游"]')!);
     expect(query().value).toBe("预算300，寄到中国");
     clock += 1000; catalog = [];
     await key("Enter");
@@ -166,7 +166,7 @@ describe("真实页面的斜线选购方案交互与官方SDK边界", () => {
 
   it("场景卡选择发送同样确定的版本，普通正文中提到方案不生成结构化选择", async () => {
     await mount(); await type("周末出游，预算300");
-    await click(host.querySelector('[aria-label="选择选购方案：周末轻装出游"]')!);
+    await click(host.querySelector('[aria-label="选择选型方案：周末轻装出游"]')!);
     await key("Enter");
     expect(requests[0].forwardedProps.selectedSkill).toEqual({ id: plans[0].id, version: plans[0].version, contentHash: plans[0].content_hash });
     await type("请使用 daily-audio v2，帮我看看耳机"); await key("Enter");

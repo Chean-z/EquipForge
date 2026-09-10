@@ -12,7 +12,7 @@ const identifier = (value: unknown): value is string =>
 /** 只展示真实发布清单；无效条目剔除，错误响应不能伪装成空库。 */
 export function readPublishedSkills(value: unknown, now = Date.now()): PublishedSkill[] {
   if (!record(value) || !hash(value.capability_digest) || !Array.isArray(value.skills))
-    throw new Error("选购方案清单格式无效");
+    throw new Error("选型方案清单格式无效");
   const seen = new Set<string>();
   let malformed = false;
   const skills = value.skills.flatMap((entry): PublishedSkill[] => {
@@ -28,7 +28,7 @@ export function readPublishedSkills(value: unknown, now = Date.now()): Published
     return [{ id: entry.id, version: entry.version, title: entry.title, description: entry.description,
       scope: entry.scope, content_hash: entry.content_hash, expires_at: entry.expires_at }];
   });
-  if (malformed && !skills.length) throw new Error("选购方案条目格式无效");
+  if (malformed && !skills.length) throw new Error("选型方案条目格式无效");
   return skills;
 }
 
@@ -69,5 +69,5 @@ export function submitSkillQuery(
   return true;
 }
 export function skillUsageLabel(usage: SkillUsage): string {
-  return `${usage.status === "used" ? "已读取选购方案" : usage.status === "reading" ? "正在读取选购方案" : "选购方案未能读取"}：${usage.title || "选购方案"}${usage.version ? ` · ${usage.version}` : ""}`;
+  return `${usage.status === "used" ? "已读取选型方案" : usage.status === "reading" ? "正在读取选型方案" : "选型方案未能读取"}：${usage.title || "选型方案"}${usage.version ? ` · ${usage.version}` : ""}`;
 }

@@ -101,8 +101,8 @@ describe("确认卡的权威状态与执行边界", () => {
       "测试收件人",
       "测试街道 1 号",
       "378.00",
-      "不含运费与关税",
-      "尚未支付，也未安排发货",
+      "不含运输及其他费用",
+      "尚未支付，也未安排交付",
       "确认创建意向单",
     ])
       expect(html).toContain(text);
@@ -221,7 +221,7 @@ describe("准备表单不把展示价格和假地址变成下单事实", () => {
       expect(html).toMatch(new RegExp(`name="${field}"[^>]*required=""`));
     expect(html).toContain('value="US"');
     expect(html).not.toContain("测试收件人");
-    expect(html).toContain("生成确认单不会下单、扣库存或付款");
+    expect(html).toContain("生成确认单不会实际采购、扣减库存或付款");
     expect(html).toContain("最终以确认单为准");
   });
   it("缺少配送范围或有效规格时不能生成确认", () => {
@@ -235,7 +235,7 @@ describe("准备表单不把展示价格和假地址变成下单事实", () => {
         onPrepare={async () => true}
       />,
     );
-    expect(html).toContain("配送范围待核验");
+    expect(html).toContain("供货范围待核验");
     expect(html).toContain("规格不可用");
     expect(html).toMatch(/disabled=""[^>]*>生成确认单/);
   });

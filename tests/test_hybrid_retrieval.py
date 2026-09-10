@@ -68,9 +68,9 @@ async def test_exact_identifier_uses_authoritative_catalog_and_preserves_order()
     repo = InMemoryProductRepository()
     embed = AsyncMock(side_effect=AssertionError('精确实体不应交给向量判断存在性'))
     usecase = CatalogSearchUseCase(repo, embedder=SimpleNamespace(embed=embed), vector_index=SimpleNamespace())
-    result = await usecase.execute(ProductSearchSpec(normalized_query='对比 P2222 和 P2206-S1', top_k=5))
+    result = await usecase.execute(ProductSearchSpec(normalized_query='对比 P1001 和 P1103-S1', top_k=5))
     assert result['recall_strategy'] == 'exact_id_lookup'
-    assert [h['product_id'] for h in result['hits']] == ['P2222', 'P2206']
+    assert [h['product_id'] for h in result['hits']] == ['P1001', 'P1103']
     assert result['missing_identifiers'] == []
     assert result['existence_checked']
     embed.assert_not_awaited()
@@ -78,11 +78,11 @@ async def test_exact_identifier_uses_authoritative_catalog_and_preserves_order()
 
 async def test_exact_identifier_never_substitutes_missing_sku_and_keeps_constraints():
     usecase = CatalogSearchUseCase(InMemoryProductRepository(), hybrid_enabled=True)
-    result = await usecase.execute(ProductSearchSpec(normalized_query='P2206-S999 P999999 P2222', price_max_major=0))
+    result = await usecase.execute(ProductSearchSpec(normalized_query='P1006-S999 P999999 P1001', price_max_major=0))
     assert not result['hits']
-    assert result['missing_identifiers'] == ['P2206-S999', 'P999999']
+    assert result['missing_identifiers'] == ['P1006-S999', 'P999999']
     assert result['filtered_out'][0]['reason'] == 'over_price_cap'
-    assert result['filtered_out'][0]['product_id'] == 'P2222'
+    assert result['filtered_out'][0]['product_id'] == 'P1001'
 
 
 def test_knowledge_topics_use_longest_title_at_each_query_position():
@@ -122,14 +122,14 @@ def test_knowledge_evidence_gate_allows_explanation_of_verification_method():
 
 async def test_exact_sku_price_and_card_default_never_fall_back_to_cheaper_sibling():
     usecase = CatalogSearchUseCase(InMemoryProductRepository())
-    blocked = await usecase.execute(ProductSearchSpec(normalized_query='P1001-S2', price_max_major=190))
-    assert not blocked['hits'] and blocked['filtered_out'][0]['price_major']==199
+    blocked = await usecase.execute(ProductSearchSpec(normalized_query='P1001-S2', price_max_major=200))
+    assert not blocked['hits'] and blocked['filtered_out'][0]['price_major']==824.82
     assert blocked['filtered_out'][0]['sku_id']=='P1001-S2'
-    accepted = await usecase.execute(ProductSearchSpec(normalized_query='P1001 P1001-S2', price_max_major=200, ship_to='CN'))
+    accepted = await usecase.execute(ProductSearchSpec(normalized_query='P1001 P1001-S2', price_max_major=900, ship_to='CN'))
     hit=accepted['hits'][0]
-    assert hit['default_sku_id']=='P1001-S2' and hit['price_major']==199
+    assert hit['default_sku_id']=='P1001-S2' and hit['price_major']==824.82
     assert [sku['sku_id'] for sku in hit['skus']]==['P1001-S2']
-    assert hit['landed_price']['subtotal_major']==199
+    assert hit['landed_price']['subtotal_major']==824.82
     missing = await usecase.execute(ProductSearchSpec(normalized_query='P1001 P1001-S99'))
     assert not missing['hits'] and missing['missing_identifiers']==['P1001-S99']
 

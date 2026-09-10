@@ -64,7 +64,7 @@ function ConfirmationCard({
     address = payload.shipping_address;
   const label = pending
     ? cancelled && cancellation
-      ? "订单已取消"
+      ? "采购意向已取消"
       : expired
         ? "确认已过期"
         : "等待你确认"
@@ -81,7 +81,7 @@ function ConfirmationCard({
       <header className="confirmation-card-heading">
         <div>
           <span className="confirmation-eyebrow">
-            {cancellation ? "取消确认" : "下单意向"}
+            {cancellation ? "取消确认" : "采购意向"}
           </span>
           <h3>
             {!pending
@@ -106,8 +106,8 @@ function ConfirmationCard({
         <summary>
           {money(payload.total_amount_minor / 100, payload.currency)} ·{" "}
           {payload.items.reduce((total, item) => total + item.quantity, 0)}{" "}
-          件商品
-          <span>查看明细与收货信息</span>
+          台设备
+          <span>查看明细与交付信息</span>
         </summary>
         <ul className="confirmation-items">
           {payload.items.map((item) => (
@@ -134,7 +134,7 @@ function ConfirmationCard({
         </ul>
 
         <div className="confirmation-address">
-          <span>收货信息</span>
+          <span>交付信息</span>
           <div>
             <strong>
               {address.recipient_name}
@@ -160,8 +160,8 @@ function ConfirmationCard({
         )}
         <div className="confirmation-total">
           <div>
-            <span>商品金额合计</span>
-            <small>不含运费与关税</small>
+            <span>设备参考金额合计</span>
+            <small>不含运输及其他费用</small>
           </div>
           <strong>
             {money(payload.total_amount_minor / 100, payload.currency)}{" "}
@@ -169,7 +169,7 @@ function ConfirmationCard({
           </strong>
         </div>
         <p className="confirmation-scope">
-          仅记录下单意向，尚未支付，也未安排发货。
+          仅记录采购意向，尚未支付，也未安排交付。
         </p>
         {orderId && (
           <p className="confirmation-order-id">
@@ -192,7 +192,7 @@ function ConfirmationCard({
               disabled={busy || !actionable}
               onClick={() => onResolve(confirmation, false)}
             >
-              {cancellation ? "保留意向单" : "暂不下单"}
+              {cancellation ? "保留意向单" : "暂不采购"}
             </button>
             <button
               type="button"
