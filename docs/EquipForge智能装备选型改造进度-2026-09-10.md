@@ -105,6 +105,7 @@
 - 当前环境的浏览器自动化内核资源不可用，因此未自动点击详情与比较；对应详情、比较、按钮状态和协议交互已由前端组件测试覆盖，仍建议发布前在页面手工点击一次。
 - 已将 `.idea/` 与 `*.log` 加入 Git 忽略规则；现有 `.env`、IDE 配置和运行日志均不会进入待提交文件，避免上传 GitHub 时泄露本地配置或运行信息。
 - 已确认发布目标为 `https://github.com/Chean-z/EquipForge`；README 已补充公开仓库克隆命令，并将本地根目录示例更新为 `EquipForge`。
+- 已将 EquipForge 改造提交推送至 `Chean-z/EquipForge` 的 `main` 分支；远端初始化提交已保留并接入历史，原 `pao-coder66/globex-agent` 远程未被覆盖。
 
 ## 已知边界
 
