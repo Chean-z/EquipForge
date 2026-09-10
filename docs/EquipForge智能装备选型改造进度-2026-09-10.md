@@ -106,6 +106,7 @@
 - 已将 `.idea/` 与 `*.log` 加入 Git 忽略规则；现有 `.env`、IDE 配置和运行日志均不会进入待提交文件，避免上传 GitHub 时泄露本地配置或运行信息。
 - 已确认发布目标为 `https://github.com/Chean-z/EquipForge`；README 已补充公开仓库克隆命令，并将本地根目录示例更新为 `EquipForge`。
 - 已将 EquipForge 改造提交推送至 `Chean-z/EquipForge` 的 `main` 分支；远端初始化提交已保留并接入历史，原 `pao-coder66/globex-agent` 远程未被覆盖。
+- 已将根 README 从教学/施工记录式文档完整重写为 EquipForge 应用说明，正文只面向智能装备选型，突出产品能力、克隆后配置启动、使用示例、部署、数据与排错；移除课程过程、旧场景和阶段验收叙事。
 
 ## 已知边界
 
